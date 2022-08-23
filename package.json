@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/ducktrshessami/node-nessie/issues"
   },
-  "homepage": "https://github.com/ducktrshessami/node-nessie#readme"
+  "homepage": "https://github.com/ducktrshessami/node-nessie#readme",
+  "dependencies": {
+    "oracledb": "^5.4.0"
+  }
 }
