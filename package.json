@@ -21,6 +21,11 @@
   },
   "homepage": "https://github.com/ducktrshessami/node-nessie#readme",
   "dependencies": {
-    "oracledb": "^5.4.0"
+    "oracledb": "^5.4.0",
+    "pluralize": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/oracledb": "^5.2.3",
+    "@types/pluralize": "^0.0.29"
   }
 }

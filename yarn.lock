@@ -2,7 +2,35 @@
 # yarn lockfile v1
 
 
+"@types/node@*":
+  version "18.7.11"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.7.11.tgz#486e72cfccde88da24e1f23ff1b7d8bfb64e6250"
+  integrity sha512-KZhFpSLlmK/sdocfSAjqPETTMd0ug6HIMIAwkwUpU79olnZdQtMxpQP+G1wDzCH7na+FltSIhbaZuKdwZ8RDrw==
+
+"@types/oracledb@^5.2.3":
+  version "5.2.3"
+  resolved "https://registry.yarnpkg.com/@types/oracledb/-/oracledb-5.2.3.tgz#37acac26752a39c7aa94760e9e5db2780afadf3c"
+  integrity sha512-Mw1/LjO8WSCdVOIGopLwxoUi2pNb9NJ2NK06U/mpQhR738FNeVWXjNbla2LAZy3nTCqPHsg3phUQNqL3qhHj8w==
+  dependencies:
+    "@types/node" "*"
+    dotenv "^8.2.0"
+
+"@types/pluralize@^0.0.29":
+  version "0.0.29"
+  resolved "https://registry.yarnpkg.com/@types/pluralize/-/pluralize-0.0.29.tgz#6ffa33ed1fc8813c469b859681d09707eb40d03c"
+  integrity sha512-BYOID+l2Aco2nBik+iYS4SZX0Lf20KPILP5RGmM1IgzdwNdTs0eebiFriOPcej1sX9mLnSoiNte5zcFxssgpGA==
+
+dotenv@^8.2.0:
+  version "8.6.0"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-8.6.0.tgz#061af664d19f7f4d8fc6e4ff9b584ce237adcb8b"
+  integrity sha512-IrPdXQsk2BbzvCBGBOTmmSH5SodmqZNt4ERAZDmW4CT+tL8VtvinqywuANaFu4bOMWki16nqf0e4oC0QIaDr/g==
+
 oracledb@^5.4.0:
   version "5.4.0"
   resolved "https://registry.yarnpkg.com/oracledb/-/oracledb-5.4.0.tgz#0ae79faa9a3c04d39b845b897d1e58342d275a85"
   integrity sha512-JirwPg+HobTV6EuXcHoHA0n55wJiWCNHaS2TRSHLSxOB9WbDyrT8q6E5PPB7nre1V/kFCd5luHkV1z780Voyfw==
+
+pluralize@^8.0.0:
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/pluralize/-/pluralize-8.0.0.tgz#1a6fa16a38d12a1901e0320fa017051c539ce3b1"
+  integrity sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==
