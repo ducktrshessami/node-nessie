@@ -1,18 +1,27 @@
-import { BindParameters, Connection, getConnection } from "oracledb"
+import { BindParameters, Connection, getConnection, initOracleClient } from "oracledb"
 
 export default class Nessie {
-    connection: Connection | null;
+    private _connection: Connection | null;
 
-    constructor(private configuration: object) {
-        this.connection = null;
+    get connection() {
+        return this._connection;
     }
 
-    private async ready() {
-        this.connection ??= await getConnection(this.configuration);
+    constructor(protected configuration: object) {
+        this._connection = null;
+        initOracleClient(configuration);
+    }
+
+    async connect() {
+        if (this._connection === null) {
+            this._connection = await getConnection(this.configuration);
+            return true;
+        }
+        return false;
     }
 
     async execute(sql: string, params: BindParameters) {
-        await this.ready();
-        return this.connection!.execute(sql, params);
+        await this.connect();
+        return this._connection!.execute(sql, params);
     }
 }
