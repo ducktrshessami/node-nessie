@@ -1,0 +1,23 @@
+{
+  "name": "nessie",
+  "version": "0.1.0",
+  "description": "A partial ORM for oracledb",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ducktrshessami/node-nessie.git"
+  },
+  "keywords": [
+    "oracledb",
+    "orm"
+  ],
+  "author": "ducktrshessami",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ducktrshessami/node-nessie/issues"
+  },
+  "homepage": "https://github.com/ducktrshessami/node-nessie#readme"
+}
