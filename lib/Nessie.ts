@@ -1,9 +1,9 @@
-import { BindParameters, Connection, ConnectionAttributes, getConnection } from "oracledb"
+import { BindParameters, Connection, getConnection } from "oracledb"
 
 export default class Nessie {
     connection: Connection | null;
 
-    constructor(private configuration: ConnectionAttributes) {
+    constructor(private configuration: object) {
         this.connection = null;
     }
 
