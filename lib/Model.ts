@@ -2,6 +2,8 @@ import Nessie from "./Nessie";
 import pluralize from "pluralize";
 
 export default abstract class Model {
+    private static _attributes: object;
+
     static get tableName() {
         return pluralize(this.name);
     }
@@ -10,6 +12,7 @@ export default abstract class Model {
         ;
     }
 
-    abstract attributes(): object;
-    // abstract options(): object;
+    static init(attributes: object) {
+        this._attributes = attributes;
+    };
 }
