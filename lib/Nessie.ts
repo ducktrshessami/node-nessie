@@ -9,7 +9,7 @@ export default class Nessie {
         return this._connection;
     }
 
-    constructor(protected configuration: object) {
+    constructor(protected configuration: any) {
         this._connection = null;
         this.models = {};
         initOracleClient(configuration);
@@ -29,6 +29,9 @@ export default class Nessie {
 
     async execute(sql: string, params: BindParameters) {
         await this.connect();
+        if (this.configuration.verbose) {
+            console.info(`Executing: ${sql}`);
+        }
         return this._connection!.execute(sql, params);
     }
 }
