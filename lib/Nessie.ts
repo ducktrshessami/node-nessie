@@ -34,4 +34,10 @@ export default class Nessie {
         }
         return this._connection!.execute(sql, params);
     }
+
+    async sync(force = false) {
+        for (const model in this.models) {
+            await this.models[model].sync(force);
+        }
+    }
 }
