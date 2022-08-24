@@ -18,4 +18,4 @@ Listen, I'm not good at naming things, so here was my thought process:
 - "Her title was also historically glossed in English as the Pythoness" -[Wikipedia](https://en.wikipedia.org/wiki/Pythia#:~:text=Her%20title%20was%20also%20historically%20glossed%20in%20English%20as%20the%20Pythoness)
 - I want to call this something related to "snek" after a nickname given to my friend
 - "snek" seems taken by a lot of other things, and I can't go with python because that's *very* taken
-- w/e we're going with nessie even if it would be impossible to trace that back to oracle without explanation
+- w/e we're going with nessie even if it would be impossible to trace nessie back to pythoness without explanation
