@@ -1,5 +1,5 @@
 export enum DataTypes {
-    SNOWFLAKE = "VARCHAR(50)",
+    STRING = "VARCHAR(255)",
     NUMBER = "NUMBER",
     DATE = "DATE"
 }
