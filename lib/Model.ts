@@ -1,7 +1,7 @@
 import Nessie from "./Nessie";
 import pluralize from "pluralize";
 import assert from "node:assert";
-import ModelInitError from "./errors/ModelInitError";
+import { ModelInitError } from "./errors/ModelError";
 
 export default abstract class Model {
     private static _nessie?: Nessie;
@@ -9,6 +9,15 @@ export default abstract class Model {
 
     static get tableName() {
         return pluralize(this.name);
+    }
+
+    private static get primaryKeys() {
+        if (this._attributes) {
+            return Object
+                .keys(this._attributes)
+                .filter(key => this._attributes[key].primaryKey);
+        }
+        return [];
     }
 
     constructor() {
@@ -28,20 +37,30 @@ export default abstract class Model {
         return true;
     }
 
+    private static buildTableSql(attributesData: any) {
+        const data = Object
+            .keys(attributesData)
+            .map(key => buildColumnSql(key, attributesData[key]));
+        const pkData = this.primaryKeys
+            .map(pk => `"${pk}"`)
+            .join(", ");
+        if (pkData) {
+            data.push(`PRIMARY KEY (${pkData})`);
+        }
+        return data.join(", ");
+    }
+
     static async sync(force = false) {
         if (this.initCheck()) {
             if (force) {
-                await this._nessie!.execute(`BEGIN\nEXECUTE IMMEDIATE 'DROP TABLE ${this.tableName}';\nEXCEPTION WHEN OTHERS THEN IF sqlcode <> -942 THEN raise; END IF;\nEND;`);
+                await this._nessie!.execute(`BEGIN\nEXECUTE IMMEDIATE 'DROP TABLE "${this.tableName}"';\nEXCEPTION WHEN OTHERS THEN IF sqlcode <> -942 THEN raise; END IF;\nEND;`);
             }
-            const columnData = Object
-                .keys(this._attributes!)
-                .map(key => buildColumnData(key, this._attributes[key]))
-                .join(",");
-            return this._nessie!.execute(`CREATE TABLE ${this.tableName} (${columnData})`);
+            const columnSql = this.buildTableSql(this._attributes);
+            return this._nessie!.execute(`CREATE TABLE "${this.tableName}" (${columnSql})`);
         }
     }
 }
 
-function buildColumnData(key: string, attributeData: any) {
+function buildColumnSql(key: string, attributeData: any): string {
 
 }
