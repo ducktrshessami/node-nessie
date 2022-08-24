@@ -4,3 +4,10 @@ export class ModelInitError extends Error {
         this.name = "ModelInitError";
     }
 }
+
+export class ModelSyncError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "ModelSyncError";
+    }
+}
