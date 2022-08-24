@@ -30,10 +30,9 @@ export default abstract class Model {
         this._nessie.addModels(this);
     }
 
-    static initCheck() {
+    private static initCheck() {
         assert(this._nessie && this._attributes, new ModelInitError(`Model not initialized: ${this.name}`));
         assert(this._nessie instanceof Nessie, new ModelInitError(`Invalid Nessie instance on model ${this.name}`));
-        assert(this._attributes, new ModelInitError(`Invalid attributes on model ${this.name}`));
         return true;
     }
 
