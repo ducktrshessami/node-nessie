@@ -1,7 +1,8 @@
 import Nessie from "./Nessie";
 import pluralize from "pluralize";
 import assert from "node:assert";
-import { ModelInitError } from "./errors/ModelError";
+import { ModelInitError, ModelSyncError } from "./errors/ModelError";
+import { DataTypes } from "./utils/DataTypes";
 
 export default abstract class Model {
     private static _nessie?: Nessie;
@@ -36,17 +37,42 @@ export default abstract class Model {
         return true;
     }
 
-    private static buildTableSql(attributesData: any) {
-        const data = Object
+    private static buildColumnSql(key: string, attributeData: any, binds: Array<any>) {
+        assert(
+            Object
+                .values(DataTypes)
+                .includes(attributeData.type),
+            new ModelSyncError(`Invalid attribute type on model ${this.name}`)
+        );
+        return Object
+            .keys(attributeData)
+            .reduce((data: Array<string>, property) => {
+                switch (property) {
+                    case "allowNull":
+                        data.push("NOT NULL");
+                        break;
+                    case "defaultValue":
+                        binds.push(attributeData[property]);
+                        data.push(`DEFAULT :${binds.length}`);
+                        break;
+                }
+                return data;
+            }, [key, attributeData.type])
+            .join(" ");
+    }
+
+    private static buildTableSql(attributesData: any): [string, Array<any>] {
+        const binds: Array<any> = [];
+        const sql = Object
             .keys(attributesData)
-            .map(key => buildColumnSql(key, attributesData[key]));
+            .map(key => this.buildColumnSql(key, attributesData[key], binds));
         const pkData = this.primaryKeys
             .map(pk => `"${pk}"`)
             .join(", ");
         if (pkData) {
-            data.push(`PRIMARY KEY (${pkData})`);
+            sql.push(`PRIMARY KEY (${pkData})`);
         }
-        return data.join(", ");
+        return [sql.join(", "), binds];
     }
 
     static async sync(force = false) {
@@ -54,12 +80,8 @@ export default abstract class Model {
             if (force) {
                 await this._nessie!.execute(`BEGIN\nEXECUTE IMMEDIATE 'DROP TABLE "${this.tableName}"';\nEXCEPTION WHEN OTHERS THEN IF sqlcode <> -942 THEN raise; END IF;\nEND;`);
             }
-            const columnSql = this.buildTableSql(this._attributes);
-            return this._nessie!.execute(`CREATE TABLE "${this.tableName}" (${columnSql})`);
+            const [columnSql, binds] = this.buildTableSql(this._attributes);
+            return this._nessie!.execute(`CREATE TABLE "${this.tableName}" (${columnSql})`, binds);
         }
     }
-}
-
-function buildColumnSql(key: string, attributeData: any): string {
-
 }
