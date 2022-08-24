@@ -27,7 +27,7 @@ export default class Nessie {
         return false;
     }
 
-    async execute(sql: string, params: BindParameters) {
+    async execute(sql: string, params?: any) {
         await this.connect();
         if (this.configuration.verbose) {
             console.info(`Executing: ${sql}`);
