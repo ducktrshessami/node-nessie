@@ -2,6 +2,8 @@ import { BindParameters, Connection, getConnection, initOracleClient } from "ora
 import Model from "./Model";
 
 export default class Nessie {
+    private static initialized = false;
+
     private _connection: Connection | null;
     readonly models: any;
 
@@ -12,7 +14,10 @@ export default class Nessie {
     constructor(protected configuration: any) {
         this._connection = null;
         this.models = {};
-        initOracleClient(configuration);
+        if (!Nessie.initialized) {
+            initOracleClient(configuration);
+            Nessie.initialized = true;
+        }
     }
 
     addModels(...newModels: Array<typeof Model>) {
