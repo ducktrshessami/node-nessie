@@ -37,7 +37,7 @@ export default class Nessie {
         if (this.configuration.verbose) {
             console.info(`Executing: ${sql}`);
         }
-        return this._connection!.execute(sql, binds);
+        return binds ? this._connection!.execute(sql, binds) : this._connection!.execute(sql);
     }
 
     async sync(force = false) {
