@@ -1,6 +1,7 @@
 import { config } from "dotenv";
 import assert from "assert";
-import { Nessie } from "../";
+import { Model, Nessie } from "../";
+import { DataTypes } from "../lib/utils/DataTypes";
 
 describe("Nessie", function () {
     let db: Nessie;
@@ -18,5 +19,21 @@ describe("Nessie", function () {
     it("connects given proper configuration", async function () {
         await db.connect();
         assert(db.connection);
+    });
+
+    it("can sync all initialized models", async function () {
+        class Foo extends Model {
+            ;
+        }
+
+        this.timeout(5000);
+        Foo.init(db, {
+            bar: {
+                type: DataTypes.STRING,
+                allowNull: false
+            }
+        });
+        await db.sync(true);
+        return db.execute(`SELECT * FROM "${Foo.tableName}"`);
     });
 });
