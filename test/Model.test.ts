@@ -21,7 +21,7 @@ describe("Model", function () {
     });
 
     it("pluralizes class name for table name", function () {
-        assert.strictEqual(Foo.tableName, "foos");
+        assert.strictEqual(Foo.tableName, "Foos");
     });
 
     it("is accessible from Nessie instance after init", function () {

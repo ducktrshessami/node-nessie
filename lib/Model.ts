@@ -9,8 +9,7 @@ export default abstract class Model {
     private static _attributes: any = null;
 
     static get tableName() {
-        return pluralize(this.name)
-            .toLowerCase();
+        return pluralize(this.name);
     }
 
     private static get primaryKeys() {
