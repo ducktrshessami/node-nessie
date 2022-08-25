@@ -9,7 +9,8 @@ export default abstract class Model {
     private static _attributes: any = null;
 
     static get tableName() {
-        return pluralize(this.name);
+        return pluralize(this.name)
+            .toLowerCase();
     }
 
     private static get primaryKeys() {
@@ -49,7 +50,9 @@ export default abstract class Model {
             .reduce((data: Array<string>, property) => {
                 switch (property) {
                     case "allowNull":
-                        data.push("NOT NULL");
+                        if (!attributeData.allowNull) {
+                            data.push("NOT NULL");
+                        }
                         break;
                     case "defaultValue":
                         binds.push(attributeData[property]);
