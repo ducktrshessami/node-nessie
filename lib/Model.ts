@@ -4,7 +4,7 @@ import assert from "node:assert";
 import { ModelInitError, ModelSyncError } from "./errors/ModelError";
 import { DataTypes } from "./utils/DataTypes";
 
-export default abstract class Model {
+export default class Model {
     private static _nessie?: Nessie;
     private static _attributes: any = null;
 
