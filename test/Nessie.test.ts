@@ -1,10 +1,11 @@
 import { config } from "dotenv";
 import assert from "assert";
 import { Model, Nessie } from "../";
-import { DataTypes } from "../lib/utils/DataTypes";
+import ExampleModel from "./ExampleModel";
 
 describe("Nessie", function () {
     let db: Nessie;
+    let Example: typeof Model;
 
     before(function () {
         config();
@@ -14,6 +15,7 @@ describe("Nessie", function () {
             password: process.env.DB_PASSWORD,
             connectionString: process.env.DB_CONNECTSTRING
         });
+        Example = ExampleModel(db);
     });
 
     it("connects given proper configuration", async function () {
@@ -22,18 +24,8 @@ describe("Nessie", function () {
     });
 
     it("can sync all initialized models", async function () {
-        class Foo extends Model {
-            ;
-        }
-
         this.timeout(5000);
-        Foo.init(db, {
-            bar: {
-                type: DataTypes.STRING,
-                primaryKey: true
-            }
-        });
         await db.sync(true);
-        return db.execute(`SELECT * FROM "${Foo.tableName}"`);
+        return db.execute(`SELECT * FROM "${Example.tableName}"`);
     });
 });
