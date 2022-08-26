@@ -34,7 +34,7 @@ describe("Model", function () {
             return db.execute(`SELECT ROWID FROM "${Example.tableName}" FETCH NEXT 0 ROWS ONLY`);
         });
 
-        it("creates a row and returns a model instance", async function () {
+        it("creates a row and returns a model instance by default", async function () {
             this.timeout(5000);
             const instance = await Example.create({
                 id: 1,
