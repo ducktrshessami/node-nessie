@@ -37,44 +37,32 @@ export default abstract class Model {
         return true;
     }
 
-    private static buildColumnSql(key: string, attributeData: any, binds: Array<any>) {
+    private static buildColumnSql(key: string, attributeData: any) {
         assert(
             Object
                 .values(DataTypes)
                 .includes(attributeData.type),
             new ModelSyncError(`Invalid attribute type on model ${this.name}`)
         );
-        return Object
-            .keys(attributeData)
-            .reduce((data: Array<string>, property) => {
-                switch (property) {
-                    case "allowNull":
-                        if (!attributeData.allowNull) {
-                            data.push("NOT NULL");
-                        }
-                        break;
-                    case "defaultValue":
-                        binds.push(attributeData[property]);
-                        data.push(`DEFAULT :${binds.length}`);
-                        break;
-                }
-                return data;
-            }, [key, attributeData.type])
-            .join(" ");
+        const sql = [key, attributeData.type];
+        if (attributeData.defaultValue) {
+            sql.push(`DEFAULT ${parseValue(attributeData.defaultValue)}`);
+        }
+        if (attributeData.allowNull !== undefined && !attributeData.allowNull) {
+            sql.push("NOT NULL");
+        }
+        return sql.join(" ");
     }
 
-    private static buildTableSql(attributesData: any): [string, Array<any>] {
-        const binds: Array<any> = [];
+    private static buildTableSql(attributesData: any): string {
         const sql = Object
             .keys(attributesData)
-            .map(key => this.buildColumnSql(key, attributesData[key], binds));
-        const pkData = this.primaryKeys
-            .map(pk => `"${pk}"`)
-            .join(", ");
+            .map(key => this.buildColumnSql(key, attributesData[key]));
+        const pkData = this.primaryKeys.join(", ");
         if (pkData) {
             sql.push(`PRIMARY KEY (${pkData})`);
         }
-        return [sql.join(", "), binds];
+        return sql.join(", ");
     }
 
     static async sync(force = false) {
@@ -82,8 +70,15 @@ export default abstract class Model {
             if (force) {
                 await this._nessie!.execute(`BEGIN\nEXECUTE IMMEDIATE 'DROP TABLE "${this.tableName}"';\nEXCEPTION WHEN OTHERS THEN IF sqlcode <> -942 THEN raise; END IF;\nEND;`);
             }
-            const [columnSql, binds] = this.buildTableSql(this._attributes);
-            return this._nessie!.execute(`CREATE TABLE "${this.tableName}" (${columnSql})`, binds);
+            const columnSql = this.buildTableSql(this._attributes);
+            return this._nessie!.execute(`CREATE TABLE "${this.tableName}" (${columnSql})`);
         }
+    }
+}
+
+function parseValue(value: any): string {
+    switch (typeof value) {
+        case "string": return `'${value}'`;
+        default: return value.toString();
     }
 }
