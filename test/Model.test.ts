@@ -40,7 +40,7 @@ describe("Model", function () {
                 id: 1,
                 foo: "bar"
             });
-            assert.strictEqual(instance.constructor, Example);
+            assert.strictEqual(instance!.constructor, Example);
         });
     });
 
