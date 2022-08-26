@@ -43,6 +43,7 @@ describe("Model", function () {
             }
         });
         await Foo.sync(true);
+        await Foo.sync();
         return db.execute(`SELECT * FROM "${Foo.tableName}"`);
     });
 });
