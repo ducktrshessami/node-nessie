@@ -45,4 +45,9 @@ export default class Nessie {
             await this.models[model].sync(force);
         }
     }
+
+    async commit() {
+        await this.connect();
+        return this._connection!.commit();
+    }
 }
