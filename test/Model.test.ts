@@ -33,6 +33,15 @@ describe("Model", function () {
             await Example.sync();
             return db.execute(`SELECT * FROM "${Example.tableName}"`);
         });
+
+        it("creates a row and returns a model instance", async function () {
+            this.timeout(5000);
+            const instance = await Example.create({
+                id: 1,
+                foo: "bar"
+            });
+            assert.strictEqual(instance.constructor, Example);
+        });
     });
 
     describe("instance members", function () {
