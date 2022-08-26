@@ -71,14 +71,14 @@ export default abstract class Model {
                 await this._nessie!.execute(`BEGIN\nEXECUTE IMMEDIATE 'DROP TABLE "${this.tableName}"';\nEXCEPTION WHEN OTHERS THEN IF sqlcode <> -942 THEN raise; END IF;\nEND;`);
             }
             const columnSql = this.buildTableSql(this._attributes);
-            return this._nessie!.execute(`CREATE TABLE "${this.tableName}" (${columnSql})`);
+            return this._nessie!.execute(`BEGIN\nEXECUTE IMMEDIATE 'CREATE TABLE "${this.tableName}" (${columnSql})';\nEXCEPTION WHEN OTHERS THEN IF sqlcode <> -955 THEN raise; END IF;\nEND;`);
         }
     }
 }
 
 function parseValue(value: any): string {
     switch (typeof value) {
-        case "string": return `'${value}'`;
+        case "string": return `''${value}''`;
         default: return value.toString();
     }
 }
