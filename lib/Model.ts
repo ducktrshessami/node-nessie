@@ -71,31 +71,29 @@ export default class Model {
     }
 
     static async sync(force = false) {
-        if (this.initCheck()) {
-            if (force) {
-                await this._nessie!.execute(`BEGIN\nEXECUTE IMMEDIATE 'DROP TABLE "${this.tableName}"';\nEXCEPTION WHEN OTHERS THEN IF sqlcode <> -942 THEN raise; END IF;\nEND;`);
-            }
-            const columnSql = this.buildTableSql(this._attributes);
-            return this._nessie!.execute(`BEGIN\nEXECUTE IMMEDIATE 'CREATE TABLE "${this.tableName}" (${columnSql})';\nEXCEPTION WHEN OTHERS THEN IF sqlcode <> -955 THEN raise; END IF;\nEND;`);
+        this.initCheck();
+        if (force) {
+            await this._nessie!.execute(`BEGIN\nEXECUTE IMMEDIATE 'DROP TABLE "${this.tableName}"';\nEXCEPTION WHEN OTHERS THEN IF sqlcode <> -942 THEN raise; END IF;\nEND;`);
         }
+        const columnSql = this.buildTableSql(this._attributes);
+        return this._nessie!.execute(`BEGIN\nEXECUTE IMMEDIATE 'CREATE TABLE "${this.tableName}" (${columnSql})';\nEXCEPTION WHEN OTHERS THEN IF sqlcode <> -955 THEN raise; END IF;\nEND;`);
     }
 
     static async create(values: any, options: any = {}) {
-        if (this.initCheck()) {
-            const attributes = Object
-                .keys(values)
-                .filter(key => key in this._attributes);
-            const attributeSql = attributes.join(", ");
-            const valuesSql = attributes
-                .map((_, i) => `:${i + 1}`)
-                .join(", ");
-            const bindings = attributes.map(attribute => values[attribute]);
-            const { lastRowid } = await this._nessie!.execute(`INSERT INTO "${this.tableName}" (${attributeSql}) VALUES (${valuesSql})`, bindings);
-            await this._nessie!.commit();
-            if (options.select ?? true) {
-                const result = await this._nessie!.execute(`SELECT ROWID, "${this.tableName}".* FROM "${this.tableName}" WHERE ROWID = :1`, [lastRowid]);
-                return new this(result);
-            }
+        this.initCheck();
+        const attributes = Object
+            .keys(values)
+            .filter(key => key in this._attributes);
+        const attributeSql = attributes.join(", ");
+        const valuesSql = attributes
+            .map((_, i) => `:${i + 1}`)
+            .join(", ");
+        const bindings = attributes.map(attribute => values[attribute]);
+        const { lastRowid } = await this._nessie!.execute(`INSERT INTO "${this.tableName}" (${attributeSql}) VALUES (${valuesSql})`, bindings);
+        await this._nessie!.commit();
+        if (options.select ?? true) {
+            const result = await this._nessie!.execute(`SELECT ROWID, "${this.tableName}".* FROM "${this.tableName}" WHERE ROWID = :1`, [lastRowid]);
+            return new this(result);
         }
     }
 }
