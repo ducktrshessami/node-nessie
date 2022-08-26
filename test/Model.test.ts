@@ -32,9 +32,14 @@ describe("Model", function () {
     it("syncs with db properly", async function () {
         this.timeout(5000);
         Foo.init(db, {
+            foobar: {
+                type: DataTypes.NUMBER,
+                primaryKey: true
+            },
             bar: {
                 type: DataTypes.STRING,
-                allowNull: false
+                allowNull: false,
+                defaultValue: "bar"
             }
         });
         await Foo.sync(true);

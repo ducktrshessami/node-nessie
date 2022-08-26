@@ -30,7 +30,7 @@ describe("Nessie", function () {
         Foo.init(db, {
             bar: {
                 type: DataTypes.STRING,
-                allowNull: false
+                primaryKey: true
             }
         });
         await db.sync(true);
