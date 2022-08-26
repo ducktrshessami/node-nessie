@@ -26,6 +26,6 @@ describe("Nessie", function () {
     it("can sync all initialized models", async function () {
         this.timeout(5000);
         await db.sync(true);
-        return db.execute(`SELECT * FROM "${Example.tableName}"`);
+        return db.execute(`SELECT ROWID FROM "${Example.tableName}" FETCH NEXT 0 ROWS ONLY`);
     });
 });
