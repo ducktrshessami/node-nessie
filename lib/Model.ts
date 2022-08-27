@@ -30,9 +30,12 @@ export default class Model {
         rawResult.metaData!.forEach((attributeMeta, i) => this.dataValues[attributeMeta.name] = row[i]);
     }
 
-    static init(nessie: Nessie, attributes: object) {
+    static init(nessie: Nessie, attributes: any) {
         this._nessie = nessie;
-        this._attributes = attributes;
+        this._attributes = {};
+        Object
+            .keys(attributes)
+            .forEach(key => this._attributes[key.toUpperCase()] = attributes[key]);
         this._nessie.addModels(this);
     }
 
@@ -83,6 +86,7 @@ export default class Model {
         this.initCheck();
         const attributes = Object
             .keys(values)
+            .map(key => key.toUpperCase())
             .filter(key => key in this._attributes);
         const attributeSql = attributes.join(", ");
         const valuesSql = attributes
@@ -92,7 +96,14 @@ export default class Model {
         const { lastRowid } = await this._nessie!.execute(`INSERT INTO "${this.tableName}" (${attributeSql}) VALUES (${valuesSql})`, bindings);
         await this._nessie!.commit();
         if (options.select ?? true) {
-            const result = await this._nessie!.execute(`SELECT ROWID, "${this.tableName}".* FROM "${this.tableName}" WHERE ROWID = :1`, [lastRowid]);
+            return this.findByRowId(lastRowid!);
+        }
+    }
+
+    static async findByRowId(rowId: string) {
+        this.initCheck();
+        const result = await this._nessie!.execute(`SELECT ROWID, "${this.tableName}".* FROM "${this.tableName}" WHERE ROWID = :1`, [rowId]);
+        if (result.rows?.length) {
             return new this(result);
         }
     }
