@@ -54,6 +54,14 @@ describe("Model", function () {
     });
 
     describe("instance members", function () {
+        let instance: Model;
 
+        before(async function () {
+            await Example.sync(true);
+            instance = (await Example.create({
+                ID: 1,
+                FOO: "foobar"
+            }))!;
+        });
     });
 });
