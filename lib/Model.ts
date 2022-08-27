@@ -84,11 +84,15 @@ export default class Model {
         return this._nessie!.execute(`BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "${this.tableName}" (${columnSql})'; EXCEPTION WHEN OTHERS THEN IF sqlcode <> -955 THEN raise; END IF; END;`);
     }
 
-    private static parseValueSql(values: any): [string, string, BindParameters] {
-        const attributes = Object
-            .keys(values)
+    private static formatAttributeKeys(attributes: any) {
+        return Object
+            .keys(attributes)
             .map(key => key.toUpperCase())
             .filter(key => key in this._attributes);
+    }
+
+    private static parseValueSql(values: any): [string, string, BindParameters] {
+        const attributes = this.formatAttributeKeys(values);
         const attributeSql = attributes.join(", ");
         const bindParamSql = attributes
             .map((_, i) => `:${i + 1}`)
@@ -116,10 +120,7 @@ export default class Model {
     }
 
     private static parseEql(values: any, bindParams: Array<any> = []): [string, Array<any>] {
-        const attributes = Object
-            .keys(values)
-            .map(key => key.toUpperCase())
-            .filter(key => key in this._attributes);
+        const attributes = this.formatAttributeKeys(values);
         const setSql = attributes
             .map((attribute, i) => `${attribute} = :${i + bindParams.length + 1}`)
             .join(", ");
