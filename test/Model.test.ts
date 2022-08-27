@@ -36,12 +36,20 @@ describe("Model", function () {
 
         it("creates a row and returns a model instance by default", async function () {
             this.timeout(5000);
-            const ID = 1;
-            const FOO = "bar";
-            const instance = await Example.create({ ID, FOO });
+            const instance = await Example.create({
+                ID: 1,
+                FOO: "bar"
+            });
             assert.strictEqual(instance!.constructor, Example);
-            assert.strictEqual(instance!.dataValues.ID, ID);
-            assert.strictEqual(instance!.dataValues.FOO, FOO);
+        });
+
+        it("findByRowId functions as intended", async function () {
+            const ID = 2;
+            const FOO = "foobar";
+            const created = await Example.create({ ID, FOO });
+            const read = await Example.findByRowId(created!.dataValues.ROWID);
+            assert.strictEqual(read!.dataValues.ID, ID);
+            assert.strictEqual(read!.dataValues.FOO, FOO);
         });
     });
 
