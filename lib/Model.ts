@@ -130,15 +130,6 @@ export default class Model {
             .join(", ");
     }
 
-    static async findByRowId(rowId: string, options: any = {}) {
-        this.initCheck();
-        const attributeSql = this.parseSelectAttributeSql(options.attributes);
-        const result: Result<any> = await this._nessie!.execute(`SELECT ${attributeSql} FROM "${this.tableName}" WHERE ROWID = :1`, [rowId]);
-        if (result.rows?.length) {
-            return new this(result.metaData!, result.rows![0]);
-        }
-    }
-
     private static parseEql(values: any, bindParams: Array<any> = []): [string, Array<any>] {
         const attributes = this.formatAttributeKeys(values);
         const setSql = Object
@@ -147,6 +138,33 @@ export default class Model {
             .join(", ");
         bindParams.push(...Object.values(attributes));
         return [setSql, bindParams];
+    }
+
+    static async findAll(options: any = {}) {
+        this.initCheck();
+        const bindParams: Array<any> = [];
+        const attributeSql = this.parseSelectAttributeSql(options.attributes);
+        let sqlData = [`SELECT ${attributeSql} FROM "${this.tableName}"`];
+        if (options.where) {
+            const [where] = this.parseEql(options.where, bindParams);
+            if (where) {
+                sqlData.push(where);
+            }
+        }
+        if (options.limit || options.limit === 0) {
+            sqlData.push(`FETCH NEXT ${options.limit} ROWS ONLY`);
+        }
+        const results: Result<any> = await this._nessie!.execute(sqlData.join(" "), bindParams);
+        return results.rows!.map(row => new this(results.metaData!, row));
+    }
+
+    static async findByRowId(rowId: string, options: any = {}) {
+        const [first] = await this.findAll({
+            ...options,
+            where: { ROWID: rowId },
+            limit: 1
+        });
+        return first;
     }
 
     static async update(values: any, options: any) {
