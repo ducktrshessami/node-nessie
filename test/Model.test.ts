@@ -36,11 +36,12 @@ describe("Model", function () {
 
         it("creates a row and returns a model instance by default", async function () {
             this.timeout(5000);
-            const instance = await Example.create({
-                id: 1,
-                foo: "bar"
-            });
+            const ID = 1;
+            const FOO = "bar";
+            const instance = await Example.create({ ID, FOO });
             assert.strictEqual(instance!.constructor, Example);
+            assert.strictEqual(instance!.dataValues.ID, ID);
+            assert.strictEqual(instance!.dataValues.FOO, FOO);
         });
     });
 
