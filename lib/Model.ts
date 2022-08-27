@@ -3,7 +3,7 @@ import pluralize from "pluralize";
 import assert from "node:assert";
 import { ModelInitError, ModelSyncError } from "./errors/ModelError";
 import { DataTypes } from "./utils/DataTypes";
-import { Metadata, Result } from "oracledb";
+import { BindParameters, Metadata, Result } from "oracledb";
 
 export default class Model {
     private static _nessie?: Nessie;
@@ -45,7 +45,6 @@ export default class Model {
     private static initCheck() {
         assert(this._nessie && this._attributes, new ModelInitError(`Model not initialized: ${this.name}`));
         assert(this._nessie instanceof Nessie, new ModelInitError(`Invalid Nessie instance on model ${this.name}`));
-        return true;
     }
 
     private static buildColumnSql(key: string, attributeData: any) {
@@ -57,7 +56,7 @@ export default class Model {
         );
         const sql = [key, attributeData.type];
         if (attributeData.defaultValue) {
-            sql.push(`DEFAULT ${parseValue(attributeData.defaultValue)}`);
+            sql.push(`DEFAULT ${formatValue(attributeData.defaultValue)}`);
         }
         if (attributeData.allowNull !== undefined && !attributeData.allowNull) {
             sql.push("NOT NULL");
@@ -85,17 +84,22 @@ export default class Model {
         return this._nessie!.execute(`BEGIN\nEXECUTE IMMEDIATE 'CREATE TABLE "${this.tableName}" (${columnSql})';\nEXCEPTION WHEN OTHERS THEN IF sqlcode <> -955 THEN raise; END IF;\nEND;`);
     }
 
-    static async create(values: any, options: any = {}) {
-        this.initCheck();
+    private static parseValueSql(values: any): [string, string, BindParameters] {
         const attributes = Object
             .keys(values)
             .map(key => key.toUpperCase())
             .filter(key => key in this._attributes);
         const attributeSql = attributes.join(", ");
-        const valuesSql = attributes
+        const bindParamSql = attributes
             .map((_, i) => `:${i + 1}`)
             .join(", ");
         const bindParams = attributes.map(attribute => values[attribute]);
+        return [attributeSql, bindParamSql, bindParams];
+    }
+
+    static async create(values: any, options: any = {}) {
+        this.initCheck();
+        const [attributeSql, valuesSql, bindParams] = this.parseValueSql(values);
         const { lastRowid } = await this._nessie!.execute(`INSERT INTO "${this.tableName}" (${attributeSql}) VALUES (${valuesSql})`, bindParams);
         await this._nessie!.commit();
         if (options.select ?? true) {
@@ -110,9 +114,30 @@ export default class Model {
             return new this(result.metaData!, result.rows![0]);
         }
     }
+
+    private static parseEql(values: any, bindParams: Array<any> = []): [string, Array<any>] {
+        const attributes = Object
+            .keys(values)
+            .map(key => key.toUpperCase())
+            .filter(key => key in this._attributes);
+        const setSql = attributes
+            .map((attribute, i) => `${attribute} = :${i + bindParams.length + 1}`)
+            .join(", ");
+        bindParams.push(...attributes.map(attribute => values[attribute]));
+        return [setSql, bindParams];
+    }
+
+    static async update(values: any, options: any) {
+        this.initCheck();
+        const [valuesSql, bindParams] = this.parseEql(values);
+        const [where] = this.parseEql(options.where, bindParams);
+        const { rowsAffected } = await this._nessie!.execute(`UPDATE "${this.tableName}" SET ${valuesSql} WHERE ${where}`, bindParams);
+        await this._nessie!.commit();
+        return rowsAffected;
+    }
 }
 
-function parseValue(value: any): string {
+function formatValue(value: any): string {
     switch (typeof value) {
         case "string": return `''${value}''`;
         default: return value.toString();
