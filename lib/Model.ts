@@ -24,7 +24,7 @@ export default class Model {
         return [];
     }
 
-    get rowId() {
+    get rowId(): string {
         return this.dataValues.ROWID;
     }
 
@@ -65,7 +65,7 @@ export default class Model {
         return sql.join(" ");
     }
 
-    private static buildTableSql(attributesData: any): string {
+    private static buildTableSql(attributesData: any) {
         const sql = Object
             .keys(attributesData)
             .map(key => this.buildColumnSql(key, attributesData[key]));
