@@ -19,3 +19,4 @@ Listen, I'm not good at naming things, so here was my thought process:
 - I want to call this something related to "snek" after a nickname given to my friend
 - "snek" seems taken by a lot of other things, and I can't go with python because that's *very* taken
 - w/e we're going with nessie even if it would be impossible to trace nessie back to pythoness without explanation
+- and the loch ness monster is supposed to be reptilian anyways right
