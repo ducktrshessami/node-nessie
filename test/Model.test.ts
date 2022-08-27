@@ -63,5 +63,9 @@ describe("Model", function () {
                 FOO: "foobar"
             }))!;
         });
+
+        it("rowId is present", function () {
+            assert.strictEqual(typeof instance.rowId, "string");
+        });
     });
 });
