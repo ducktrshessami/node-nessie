@@ -63,6 +63,18 @@ describe("Model", function () {
             });
             assert.strictEqual(updated, 1);
         });
+
+        it("destroy functions as intended", async function () {
+            const ID = 4;
+            await Example.create({
+                ID,
+                FOO: "foo"
+            }, { select: false });
+            const destroyed = await Example.destroy({
+                where: { ID }
+            });
+            assert.strictEqual(destroyed, 1);
+        });
     });
 
     describe("instance members", function () {
