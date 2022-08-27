@@ -78,10 +78,10 @@ export default class Model {
     static async sync(force = false) {
         this.initCheck();
         if (force) {
-            await this._nessie!.execute(`BEGIN\nEXECUTE IMMEDIATE 'DROP TABLE "${this.tableName}"';\nEXCEPTION WHEN OTHERS THEN IF sqlcode <> -942 THEN raise; END IF;\nEND;`);
+            await this._nessie!.execute(`BEGIN EXECUTE IMMEDIATE 'DROP TABLE "${this.tableName}"'; EXCEPTION WHEN OTHERS THEN IF sqlcode <> -942 THEN raise; END IF; END;`);
         }
         const columnSql = this.buildTableSql(this._attributes);
-        return this._nessie!.execute(`BEGIN\nEXECUTE IMMEDIATE 'CREATE TABLE "${this.tableName}" (${columnSql})';\nEXCEPTION WHEN OTHERS THEN IF sqlcode <> -955 THEN raise; END IF;\nEND;`);
+        return this._nessie!.execute(`BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "${this.tableName}" (${columnSql})'; EXCEPTION WHEN OTHERS THEN IF sqlcode <> -955 THEN raise; END IF; END;`);
     }
 
     private static parseValueSql(values: any): [string, string, BindParameters] {
