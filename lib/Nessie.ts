@@ -1,4 +1,4 @@
-import { Connection, getConnection, initOracleClient } from "oracledb"
+import { BindParameters, Connection, getConnection, initOracleClient } from "oracledb"
 import Model from "./Model";
 
 export default class Nessie {
@@ -32,7 +32,7 @@ export default class Nessie {
         return false;
     }
 
-    async execute(sql: string, bindParams?: any) {
+    async execute(sql: string, bindParams?: BindParameters) {
         await this.connect();
         if (this.configuration.verbose) {
             console.info(`Executing: ${sql}`);
@@ -40,7 +40,7 @@ export default class Nessie {
         return bindParams ? this._connection!.execute(sql, bindParams) : this._connection!.execute(sql);
     }
 
-    async executeMany(sql: string, bindParams: any) {
+    async executeMany(sql: string, bindParams: Array<BindParameters>) {
         await this.connect();
         if (this.configuration.verbose) {
             console.info(`Executing Many: ${sql}`);
