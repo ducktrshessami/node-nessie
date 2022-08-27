@@ -2,7 +2,7 @@ import Nessie from "./Nessie";
 import pluralize from "pluralize";
 import assert from "node:assert";
 import { ModelInitError, ModelSyncError } from "./errors/ModelError";
-import { DataTypes } from "./utils/Constants";
+import { DataTypes, Pseudocolumns } from "./utils/Constants";
 import { BindParameters, Metadata, Result } from "oracledb";
 
 export default class Model {
@@ -89,7 +89,7 @@ export default class Model {
             .keys(attributes)
             .reduce((formatted: any, key) => {
                 const upper = key.toUpperCase();
-                if (upper in this._attributes) {
+                if (upper in this._attributes || upper in Pseudocolumns) {
                     formatted[upper] = attributes[key];
                 }
                 return formatted;
@@ -122,7 +122,7 @@ export default class Model {
             .reduce((data: Array<string>, attribute) => {
                 const upper = attribute.toUpperCase();
                 const sql = `"${this.tableName}".${upper}`;
-                if (upper in this._attributes && !data.includes(sql)) {
+                if ((upper in this._attributes || upper in Pseudocolumns) && !data.includes(sql)) {
                     data.push(sql);
                 }
                 return data;
