@@ -44,6 +44,7 @@ describe("Model", function () {
         });
 
         it("findByRowId functions as intended", async function () {
+            this.timeout(5000);
             const ID = 2;
             const FOO = "foobar";
             const created = await Example.create({ ID, FOO });
@@ -53,6 +54,7 @@ describe("Model", function () {
         });
 
         it("update functions as intended", async function () {
+            this.timeout(5000);
             const ID = 3;
             await Example.create({
                 ID,
@@ -65,6 +67,7 @@ describe("Model", function () {
         });
 
         it("destroy functions as intended", async function () {
+            this.timeout(5000);
             const ID = 4;
             await Example.create({
                 ID,
