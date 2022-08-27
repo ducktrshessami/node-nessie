@@ -40,6 +40,14 @@ export default class Nessie {
         return bindParams ? this._connection!.execute(sql, bindParams) : this._connection!.execute(sql);
     }
 
+    async executeMany(sql: string, bindParams: any) {
+        await this.connect();
+        if (this.configuration.verbose) {
+            console.info(`Executing Many: ${sql}`);
+        }
+        return this._connection!.executeMany(sql, bindParams);
+    }
+
     async sync(force = false) {
         for (const model in this.models) {
             await this.models[model].sync(force);
