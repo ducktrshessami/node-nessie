@@ -87,17 +87,23 @@ export default class Model {
     private static formatAttributeKeys(attributes: any) {
         return Object
             .keys(attributes)
-            .map(key => key.toUpperCase())
-            .filter(key => key in this._attributes);
+            .reduce((formatted: any, key) => {
+                const upper = key.toUpperCase();
+                if (upper in this._attributes) {
+                    formatted[upper] = attributes[key];
+                }
+                return formatted;
+            }, {});
     }
 
     private static parseValueSql(values: any): [string, string, BindParameters] {
         const attributes = this.formatAttributeKeys(values);
-        const attributeSql = attributes.join(", ");
-        const bindParamSql = attributes
+        const attributeKeys = Object.keys(attributes);
+        const attributeSql = attributeKeys.join(", ");
+        const bindParamSql = attributeKeys
             .map((_, i) => `:${i + 1}`)
             .join(", ");
-        const bindParams = attributes.map(attribute => values[attribute]);
+        const bindParams = Object.values(attributes);
         return [attributeSql, bindParamSql, bindParams];
     }
 
@@ -121,10 +127,11 @@ export default class Model {
 
     private static parseEql(values: any, bindParams: Array<any> = []): [string, Array<any>] {
         const attributes = this.formatAttributeKeys(values);
-        const setSql = attributes
+        const setSql = Object
+            .keys(attributes)
             .map((attribute, i) => `${attribute} = :${i + bindParams.length + 1}`)
             .join(", ");
-        bindParams.push(...attributes.map(attribute => values[attribute]));
+        bindParams.push(...Object.values(attributes));
         return [setSql, bindParams];
     }
 
