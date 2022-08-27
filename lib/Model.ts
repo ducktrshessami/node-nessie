@@ -2,7 +2,7 @@ import Nessie from "./Nessie";
 import pluralize from "pluralize";
 import assert from "node:assert";
 import { ModelInitError, ModelSyncError } from "./errors/ModelError";
-import { DataTypes } from "./utils/DataTypes";
+import { DataTypes } from "./utils/Constants";
 import { BindParameters, Metadata, Result } from "oracledb";
 
 export default class Model {

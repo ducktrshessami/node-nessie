@@ -1,6 +1,6 @@
 import Nessie from "../lib/Nessie";
 import Model from "../lib/Model";
-import { DataTypes } from "../lib/utils/DataTypes";
+import { DataTypes } from "../lib/utils/Constants";
 
 export default function ExampleModel(nessie: Nessie) {
     class Example extends Model { }
