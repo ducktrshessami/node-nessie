@@ -9,7 +9,7 @@ export default class Model {
     private static _nessie?: Nessie;
     private static _attributes: any = null;
 
-    public dataValues: any;
+    dataValues: any;
 
     static get tableName() {
         return pluralize(this.name);
@@ -22,6 +22,10 @@ export default class Model {
                 .filter(key => this._attributes[key].primaryKey);
         }
         return [];
+    }
+
+    get rowId() {
+        return this.dataValues.ROWID;
     }
 
     constructor(metaData: Array<Metadata<any>>, row: Array<any>) {
