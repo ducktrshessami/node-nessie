@@ -151,8 +151,8 @@ export default class Model {
                 sqlData.push(`WHERE ${where}`);
             }
         }
-        if (options.limit || options.limit === 0) {
-            sqlData.push(`FETCH NEXT ${options.limit} ROWS ONLY`);
+        if (typeof options.limit === "number") {
+            sqlData.push(`FETCH NEXT ${Math.floor(options.limit)} ROWS ONLY`);
         }
         const results: Result<any> = await this._nessie!.execute(sqlData.join(" "), bindParams);
         return results.rows!.map(row => new this(results.metaData!, row));
