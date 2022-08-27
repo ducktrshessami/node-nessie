@@ -47,7 +47,7 @@ describe("Model", function () {
             const ID = 2;
             const FOO = "foobar";
             const created = await Example.create({ ID, FOO });
-            const read = await Example.findByRowId(created!.dataValues.ROWID);
+            const read = await Example.findByRowId(created!.rowId);
             assert.strictEqual(read!.dataValues.ID, ID);
             assert.strictEqual(read!.dataValues.FOO, FOO);
         });
