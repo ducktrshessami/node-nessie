@@ -51,6 +51,18 @@ describe("Model", function () {
             assert.strictEqual(read!.dataValues.ID, ID);
             assert.strictEqual(read!.dataValues.FOO, FOO);
         });
+
+        it("update functions as intended", async function () {
+            const ID = 3;
+            await Example.create({
+                ID,
+                FOO: "foo"
+            }, { select: false });
+            const updated = await Example.update({ FOO: "bar" }, {
+                where: { ID }
+            });
+            assert.strictEqual(updated, 1);
+        });
     });
 
     describe("instance members", function () {
