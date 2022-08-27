@@ -117,9 +117,23 @@ export default class Model {
         }
     }
 
-    static async findByRowId(rowId: string) {
+    private static parseSelectAttributeSql(attributes: Array<string> = Object.keys(this._attributes)) {
+        return attributes
+            .reduce((data: Array<string>, attribute) => {
+                const upper = attribute.toUpperCase();
+                const sql = `"${this.tableName}".${upper}`;
+                if (upper in this._attributes && !data.includes(sql)) {
+                    data.push(sql);
+                }
+                return data;
+            }, [`"${this.tableName}".ROWID`])
+            .join(", ");
+    }
+
+    static async findByRowId(rowId: string, options: any = {}) {
         this.initCheck();
-        const result: Result<any> = await this._nessie!.execute(`SELECT ROWID, "${this.tableName}".* FROM "${this.tableName}" WHERE ROWID = :1`, [rowId]);
+        const attributeSql = this.parseSelectAttributeSql(options.attributes);
+        const result: Result<any> = await this._nessie!.execute(`SELECT ${attributeSql} FROM "${this.tableName}" WHERE ROWID = :1`, [rowId]);
         if (result.rows?.length) {
             return new this(result.metaData!, result.rows![0]);
         }
@@ -129,7 +143,7 @@ export default class Model {
         const attributes = this.formatAttributeKeys(values);
         const setSql = Object
             .keys(attributes)
-            .map((attribute, i) => `${attribute} = :${i + bindParams.length + 1}`)
+            .map((attribute, i) => `"${this.tableName}".${attribute} = :${i + bindParams.length + 1}`)
             .join(", ");
         bindParams.push(...Object.values(attributes));
         return [setSql, bindParams];
