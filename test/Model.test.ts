@@ -31,7 +31,7 @@ describe("Model", function () {
             this.timeout(5000);
             await Example.sync(true);
             await Example.sync();
-            return db.execute(`SELECT ROWID FROM "${Example.tableName}" FETCH NEXT 0 ROWS ONLY`);
+            return db.execute(`SELECT "${Example.tableName}".ROWID FROM "${Example.tableName}" FETCH NEXT 0 ROWS ONLY`);
         });
 
         it("creates a row and returns a model instance by default", async function () {
