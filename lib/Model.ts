@@ -91,8 +91,8 @@ export default class Model {
         const valuesSql = attributes
             .map((_, i) => `:${i + 1}`)
             .join(", ");
-        const bindings = attributes.map(attribute => values[attribute]);
-        const { lastRowid } = await this._nessie!.execute(`INSERT INTO "${this.tableName}" (${attributeSql}) VALUES (${valuesSql})`, bindings);
+        const bindParams = attributes.map(attribute => values[attribute]);
+        const { lastRowid } = await this._nessie!.execute(`INSERT INTO "${this.tableName}" (${attributeSql}) VALUES (${valuesSql})`, bindParams);
         await this._nessie!.commit();
         if (options.select ?? true) {
             return this.findByRowId(lastRowid!);

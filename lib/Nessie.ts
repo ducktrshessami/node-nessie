@@ -32,12 +32,12 @@ export default class Nessie {
         return false;
     }
 
-    async execute(sql: string, binds?: any) {
+    async execute(sql: string, bindParams?: any) {
         await this.connect();
         if (this.configuration.verbose) {
             console.info(`Executing: ${sql}`);
         }
-        return binds ? this._connection!.execute(sql, binds) : this._connection!.execute(sql);
+        return bindParams ? this._connection!.execute(sql, bindParams) : this._connection!.execute(sql);
     }
 
     async sync(force = false) {
