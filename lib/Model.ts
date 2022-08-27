@@ -3,7 +3,7 @@ import pluralize from "pluralize";
 import assert from "node:assert";
 import { ModelInitError, ModelSyncError } from "./errors/ModelError";
 import { DataTypes } from "./utils/DataTypes";
-import { Result } from "oracledb";
+import { Metadata, Result } from "oracledb";
 
 export default class Model {
     private static _nessie?: Nessie;
@@ -24,10 +24,9 @@ export default class Model {
         return [];
     }
 
-    constructor(rawResult: Result<any>) {
+    constructor(metaData: Array<Metadata<any>>, row: Array<any>) {
         this.dataValues = {};
-        const row = rawResult.rows![0];
-        rawResult.metaData!.forEach((attributeMeta, i) => this.dataValues[attributeMeta.name] = row[i]);
+        metaData.forEach((attributeMeta, i) => this.dataValues[attributeMeta.name] = row[i]);
     }
 
     static init(nessie: Nessie, attributes: any) {
@@ -102,9 +101,9 @@ export default class Model {
 
     static async findByRowId(rowId: string) {
         this.initCheck();
-        const result = await this._nessie!.execute(`SELECT ROWID, "${this.tableName}".* FROM "${this.tableName}" WHERE ROWID = :1`, [rowId]);
+        const result: Result<any> = await this._nessie!.execute(`SELECT ROWID, "${this.tableName}".* FROM "${this.tableName}" WHERE ROWID = :1`, [rowId]);
         if (result.rows?.length) {
-            return new this(result);
+            return new this(result.metaData!, result.rows![0]);
         }
     }
 }
