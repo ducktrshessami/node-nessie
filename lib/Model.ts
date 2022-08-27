@@ -148,7 +148,7 @@ export default class Model {
         if (options.where) {
             const [where] = this.parseEql(options.where, bindParams);
             if (where) {
-                sqlData.push(where);
+                sqlData.push(`WHERE ${where}`);
             }
         }
         if (options.limit || options.limit === 0) {
