@@ -34,49 +34,55 @@ describe("Model", function () {
             return db.execute(`SELECT "${Example.tableName}".ROWID FROM "${Example.tableName}" FETCH NEXT 0 ROWS ONLY`);
         });
 
-        it("creates a row and returns a model instance by default", async function () {
-            this.timeout(5000);
-            const instance = await Example.create({
-                ID: 1,
-                FOO: "bar"
+        describe("sync between tests", function () {
+            beforeEach(async function () {
+                return Example.sync(true);
             });
-            assert.strictEqual(instance!.constructor, Example);
-        });
 
-        it("findByRowId functions as intended", async function () {
-            this.timeout(5000);
-            const ID = 2;
-            const FOO = "foobar";
-            const created = await Example.create({ ID, FOO });
-            const read = await Example.findByRowId(created!.rowId);
-            assert.strictEqual(read!.dataValues.ID, ID);
-            assert.strictEqual(read!.dataValues.FOO, FOO);
-        });
-
-        it("update functions as intended", async function () {
-            this.timeout(5000);
-            const ID = 3;
-            await Example.create({
-                ID,
-                FOO: "foo"
-            }, { select: false });
-            const updated = await Example.update({ FOO: "bar" }, {
-                where: { ID }
+            it("creates a row and returns a model instance by default", async function () {
+                this.timeout(5000);
+                const instance = await Example.create({
+                    ID: 1,
+                    FOO: "bar"
+                });
+                assert.strictEqual(instance!.constructor, Example);
             });
-            assert.strictEqual(updated, 1);
-        });
 
-        it("destroy functions as intended", async function () {
-            this.timeout(5000);
-            const ID = 4;
-            await Example.create({
-                ID,
-                FOO: "foo"
-            }, { select: false });
-            const destroyed = await Example.destroy({
-                where: { ID }
+            it("findByRowId functions as intended", async function () {
+                this.timeout(5000);
+                const ID = 1;
+                const FOO = "foobar";
+                const created = await Example.create({ ID, FOO });
+                const read = await Example.findByRowId(created!.rowId);
+                assert.strictEqual(read!.dataValues.ID, ID);
+                assert.strictEqual(read!.dataValues.FOO, FOO);
             });
-            assert.strictEqual(destroyed, 1);
+
+            it("update functions as intended", async function () {
+                this.timeout(5000);
+                const ID = 1;
+                await Example.create({
+                    ID,
+                    FOO: "foo"
+                }, { select: false });
+                const updated = await Example.update({ FOO: "bar" }, {
+                    where: { ID }
+                });
+                assert.strictEqual(updated, 1);
+            });
+
+            it("destroy functions as intended", async function () {
+                this.timeout(5000);
+                const ID = 1;
+                await Example.create({
+                    ID,
+                    FOO: "foo"
+                }, { select: false });
+                const destroyed = await Example.destroy({
+                    where: { ID }
+                });
+                assert.strictEqual(destroyed, 1);
+            });
         });
     });
 
