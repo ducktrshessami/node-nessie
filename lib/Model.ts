@@ -158,13 +158,18 @@ export default class Model {
         return results.rows!.map(row => new this(results.metaData!, row));
     }
 
-    static async findByRowId(rowId: string, options: any = {}) {
+    static async findOne(options: any = {}) {
         const [first] = await this.findAll({
             ...options,
-            where: { ROWID: rowId },
             limit: 1
         });
         return first;
+    }
+
+    static async findByRowId(rowId: string) {
+        return this.findOne({
+            where: { ROWID: rowId }
+        });
     }
 
     static async update(values: any, options: any) {
