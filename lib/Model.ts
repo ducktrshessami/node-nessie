@@ -172,6 +172,39 @@ export default class Model {
         });
     }
 
+    static async findOrCreate(options: any = {}): Promise<[Model, boolean]> {
+        let created = false;
+        let model = await this.findOne(options);
+        if (!model) {
+            const createOptions = {
+                ...options.where,
+                ...options.defaults
+            };
+            try {
+                model = (await this.create(createOptions))!;
+                created = true;
+            }
+            catch (error: any) {
+                if (error.errorNum === 1) {
+                    const pks = this.primaryKeys;
+                    const findPkOptions = Object
+                        .keys(createOptions)
+                        .reduce((pkWhere: any, attribute) => {
+                            if (pks.includes(attribute)) {
+                                pkWhere[attribute] = createOptions[attribute];
+                            }
+                            return pkWhere;
+                        }, {});
+                    model = await this.findOne({ where: findPkOptions });
+                }
+                else {
+                    throw error;
+                }
+            }
+        }
+        return [model, created];
+    }
+
     static async update(values: any, options: any) {
         this.initCheck();
         const [valuesSql, bindParams] = this.parseEql(values);
