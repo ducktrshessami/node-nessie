@@ -191,7 +191,7 @@ export default class Model {
 
 function formatValue(value: any): string {
     switch (typeof value) {
-        case "string": return `''${value}''`;
+        case "string": return `''${value.replace("'", "'''")}''`;
         default: return value.toString();
     }
 }
