@@ -58,6 +58,24 @@ describe("Model", function () {
                 assert.strictEqual(read!.dataValues.FOO, FOO);
             });
 
+            it("findOrCreate functions as intended", async function () {
+                this.timeout(5000);
+                const ID = 1;
+                const FOO = "foo";
+                const [initial, initialCreated] = await Example.findOrCreate({
+                    where: { ID },
+                    defaults: { FOO }
+                });
+                assert.strictEqual(initialCreated, true);
+                const [found, foundCreated] = await Example.findOrCreate({
+                    where: { ID },
+                    defaults: { FOO: "bar" }
+                });
+                assert.strictEqual(foundCreated, false);
+                assert.strictEqual(found.rowId, initial.rowId);
+                assert.strictEqual(found.dataValues.FOO, FOO);
+            });
+
             it("update functions as intended", async function () {
                 this.timeout(5000);
                 const ID = 1;
