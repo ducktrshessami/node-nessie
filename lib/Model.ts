@@ -213,7 +213,7 @@ export default class Model {
         });
     }
 
-    static async findOrCreate(options: any = {}): Promise<[Model, boolean]> {
+    static async findOrCreate(options: any): Promise<[Model, boolean]> {
         let created = false;
         let model = await this.findOne(options);
         if (!model) {
