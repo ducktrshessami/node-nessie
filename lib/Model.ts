@@ -17,7 +17,7 @@ export default class Model {
         return this._tableName ?? pluralize(this.name);
     }
 
-    private static get primaryKeys() {
+    static get primaryKeys() {
         if (this._attributes) {
             return Object
                 .keys(this._attributes)
