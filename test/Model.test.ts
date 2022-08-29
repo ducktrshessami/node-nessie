@@ -143,5 +143,12 @@ describe("Model", function () {
             await instance.update({ FOO });
             assert.strictEqual(instance.dataValues.FOO, FOO);
         });
+
+        it("destroy marks instance as destroyed", async function () {
+            this.timeout(5000);
+            assert.strictEqual(instance.destroyed, false);
+            await instance.destroy();
+            assert.strictEqual(instance.destroyed, true);
+        });
     });
 });
