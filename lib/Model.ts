@@ -254,7 +254,7 @@ export default class Model {
         this.dataValues = selected.dataValues;
     }
 
-    async update(values: any, options: any) {
+    async update(values: any, options: any = {}) {
         await this.model.update(values, {
             ...options,
             where: { ROWID: this.rowId }
