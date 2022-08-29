@@ -273,6 +273,7 @@ export default class Model {
         this.initCheck();
         const [where, bindParams] = this.parseEql(options.where);
         const { rowsAffected } = await this._nessie!.execute(`DELETE FROM "${this.tableName}" WHERE ${where}`, bindParams);
+        this._nessie!.commit();
         return rowsAffected;
     }
 
