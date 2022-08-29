@@ -204,7 +204,7 @@ export default class Model {
             ...options,
             limit: 1
         });
-        return first;
+        return first ?? null;
     }
 
     static async findByRowId(rowId: string) {
