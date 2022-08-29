@@ -10,6 +10,7 @@ export default class Model {
     private static _tableName: string | null;
     private static _attributes: any = null;
 
+    private _destroyed: boolean;
     dataValues: any;
 
     static get tableName() {
@@ -29,11 +30,16 @@ export default class Model {
         return this.constructor as typeof Model;
     }
 
+    get destroyed() {
+        return this._destroyed;
+    }
+
     get rowId(): string {
         return this.dataValues.ROWID;
     }
 
     constructor(metaData: Array<Metadata<any>>, row: Array<any>) {
+        this._destroyed = false;
         this.dataValues = {};
         metaData.forEach((attributeMeta, i) => this.dataValues[attributeMeta.name] = row[i]);
     }
@@ -268,6 +274,16 @@ export default class Model {
         const [where, bindParams] = this.parseEql(options.where);
         const { rowsAffected } = await this._nessie!.execute(`DELETE FROM "${this.tableName}" WHERE ${where}`, bindParams);
         return rowsAffected;
+    }
+
+    async destroy(options: any = {}) {
+        if (!this._destroyed) {
+            await this.model.destroy({
+                ...options,
+                where: { ROWID: this.rowId }
+            });
+            this._destroyed = true;
+        }
     }
 }
 
