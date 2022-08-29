@@ -249,11 +249,18 @@ export default class Model {
         return rowsAffected;
     }
 
+    private async patch() {
+        const selected = await this.model.findByRowId(this.rowId);
+        this.dataValues = selected.dataValues;
+    }
+
     async update(values: any, options: any) {
-        return this.model.update(values, {
+        await this.model.update(values, {
             ...options,
             where: { ROWID: this.rowId }
         });
+        await this.patch();
+        return this;
     }
 
     static async destroy(options: any) {
