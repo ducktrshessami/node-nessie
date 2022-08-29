@@ -38,6 +38,7 @@ export default class Model {
         this._attributes = {};
         Object
             .keys(attributes)
+            .sort()
             .forEach(key => this._attributes[key.toUpperCase()] = attributes[key]);
         this._nessie.addModels(this);
     }
