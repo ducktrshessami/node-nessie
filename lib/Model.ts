@@ -119,6 +119,33 @@ export default class Model {
         }
     }
 
+    private static buildBulkQuery(values: Array<any>, ignoreDuplicates: boolean): [string, Array<BindParameters>] {
+        const structure = values.reduce((struct: any, value) => {
+            const formatted = this.formatAttributeKeys(value);
+            Object
+                .keys(formatted)
+                .forEach(attribute => struct[attribute] = null);
+            return struct;
+        }, {});
+        const structureAttributeList = Object.keys(structure);
+        const structureAttributes = structureAttributeList.join(", ");
+        const bindParamSql = structureAttributeList
+            .map((_, i) => `:${i + 1}`)
+            .join(", ");
+        const bindParamList = values.map(value => structureAttributeList.map(attribute => value[attribute] ?? null));
+        const insertSql = `INSERT INTO "${this.tableName}" (${structureAttributes}) VALUES (${bindParamSql})`;
+        const sql = ignoreDuplicates ? `BEGIN ${insertSql}; EXCEPTION WHEN OTHERS THEN IF sqlcode <> -1 THEN raise; END IF; END;` : insertSql;
+        return [sql, bindParamList];
+    }
+
+    static async bulkCreate(values: Array<any>, options: any = {}) {
+        this.initCheck();
+        const [sql, bindParams] = this.buildBulkQuery(values, options.ignoreDuplicates);
+        const { rowsAffected } = await this._nessie!.executeMany(sql, bindParams);
+        await this._nessie!.commit();
+        return rowsAffected ?? 0;
+    }
+
     private static parseSelectAttributeSql(attributes: Array<string> = Object.keys(this._attributes)) {
         return attributes
             .reduce((data: Array<string>, attribute) => {
