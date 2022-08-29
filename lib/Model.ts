@@ -256,8 +256,8 @@ export default class Model {
     }
 
     private async patch() {
-        const selected = await this.model.findByRowId(this.rowId);
-        this.dataValues = selected.dataValues;
+        const { dataValues } = await this.model.findByRowId(this.rowId);
+        this.dataValues = dataValues;
     }
 
     async update(values: any, options: any = {}) {
