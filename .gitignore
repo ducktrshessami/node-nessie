@@ -80,7 +80,7 @@ jspm_packages/
 
 # Nuxt.js build / generate output
 .nuxt
-dist
+# dist
 
 # Gatsby files
 .cache/
@@ -102,3 +102,9 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Prebuild source
+/lib/
+test/
+/*.ts
+tsconfig.json
