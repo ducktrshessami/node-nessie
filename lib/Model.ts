@@ -87,6 +87,7 @@ export default class Model {
     private static formatAttributeKeys(attributes: any) {
         return Object
             .keys(attributes)
+            .sort()
             .reduce((formatted: any, key) => {
                 const upper = key.toUpperCase();
                 if (upper in this._attributes || upper in Pseudocolumns) {
