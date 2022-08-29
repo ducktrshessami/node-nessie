@@ -136,5 +136,12 @@ describe("Model", function () {
         it("rowId is present", function () {
             assert.strictEqual(typeof instance.rowId, "string");
         });
+
+        it("update patches instance's dataValues", async function () {
+            this.timeout(5000);
+            const FOO = "foo";
+            await instance.update({ FOO });
+            assert.strictEqual(instance.dataValues.FOO, FOO);
+        });
     });
 });
