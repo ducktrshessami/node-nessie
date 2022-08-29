@@ -48,6 +48,24 @@ describe("Model", function () {
                 assert.strictEqual(instance!.constructor, Example);
             });
 
+            it("bulkCreate functions as intended", async function () {
+                this.timeout(5000);
+                const values = [
+                    {
+                        ID: 1,
+                        FOO: "foo"
+                    },
+                    {
+                        ID: 2,
+                        FOO: "bar"
+                    }
+                ];
+                const initial = await Example.bulkCreate(values);
+                const ignored = await Example.bulkCreate(values, { ignoreDuplicates: true });
+                assert.strictEqual(initial, values.length);
+                assert.strictEqual(ignored, 0);
+            });
+
             it("findByRowId functions as intended", async function () {
                 this.timeout(5000);
                 const ID = 1;
