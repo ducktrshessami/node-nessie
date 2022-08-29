@@ -25,6 +25,10 @@ export default class Model {
         return [];
     }
 
+    get model() {
+        return this.constructor as typeof Model;
+    }
+
     get rowId(): string {
         return this.dataValues.ROWID;
     }
@@ -243,6 +247,13 @@ export default class Model {
         const { rowsAffected } = await this._nessie!.execute(`UPDATE "${this.tableName}" SET ${valuesSql} WHERE ${where}`, bindParams);
         await this._nessie!.commit();
         return rowsAffected;
+    }
+
+    async update(values: any, options: any) {
+        return this.model.update(values, {
+            ...options,
+            where: { ROWID: this.rowId }
+        });
     }
 
     static async destroy(options: any) {
