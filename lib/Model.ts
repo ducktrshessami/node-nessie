@@ -7,12 +7,13 @@ import { BindParameters, Metadata, Result } from "oracledb";
 
 export default class Model {
     private static _nessie?: Nessie;
+    private static _tableName: string | null;
     private static _attributes: any = null;
 
     dataValues: any;
 
     static get tableName() {
-        return pluralize(this.name);
+        return this._tableName ?? pluralize(this.name);
     }
 
     private static get primaryKeys() {
@@ -33,14 +34,15 @@ export default class Model {
         metaData.forEach((attributeMeta, i) => this.dataValues[attributeMeta.name] = row[i]);
     }
 
-    static init(nessie: Nessie, attributes: any) {
-        this._nessie = nessie;
+    static init(attributes: any, options: any) {
+        this._nessie = options.nessie;
+        this._tableName = options.tableName ?? null;
         this._attributes = {};
         Object
             .keys(attributes)
             .sort()
             .forEach(key => this._attributes[key.toUpperCase()] = attributes[key]);
-        this._nessie.addModels(this);
+        this._nessie!.addModels(this);
     }
 
     private static initCheck() {
