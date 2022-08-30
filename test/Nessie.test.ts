@@ -19,8 +19,8 @@ describe("Nessie", function () {
     });
 
     it("connects given proper configuration", async function () {
-        await db.connect();
-        assert(db.connection);
+        const connection = await db.connect();
+        assert(connection);
     });
 
     it("can sync all initialized models", async function () {
