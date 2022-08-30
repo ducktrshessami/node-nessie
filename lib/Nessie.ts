@@ -4,16 +4,14 @@ import Model from "./Model";
 export default class Nessie {
     private static initialized = false;
 
-    private _connection: Connection | null;
     private _pool: Pool | null;
     readonly models: any;
 
-    get connection() {
-        return this._connection;
+    get pool() {
+        return this._pool;
     }
 
     constructor(protected configuration: any) {
-        this._connection = null;
         this._pool = null;
         this.models = {};
         if (!Nessie.initialized) {
