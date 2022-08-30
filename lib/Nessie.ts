@@ -35,19 +35,21 @@ export default class Nessie {
     }
 
     async connect() {
-        if (this._connection === null) {
-            this._connection = await getConnection(this.configuration);
-            return true;
-        }
-        return false;
+        await this.initPool();
+        return this._pool!.getConnection();
     }
 
-    async execute(sql: string, bindParams: BindParameters = []) {
-        await this.connect();
+    async execute(sql: string, bindParams: BindParameters = [], commit = false) {
+        const connection = await this.connect();
         if (this.configuration.verbose) {
             console.info(`Executing: ${sql}`);
         }
-        return this._connection!.execute(sql, bindParams);
+        const result = await connection.execute(sql, bindParams);
+        if (commit) {
+            await connection.commit();
+        }
+        await connection.close();
+        return result;
     }
 
     async executeMany(sql: string, bindParams: Array<BindParameters>) {
@@ -62,10 +64,5 @@ export default class Nessie {
         for (const model in this.models) {
             await this.models[model].sync(force);
         }
-    }
-
-    async commit() {
-        await this.connect();
-        return this._connection!.commit();
     }
 }
