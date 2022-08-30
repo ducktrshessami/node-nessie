@@ -1,4 +1,4 @@
-import { BindParameters, Connection, createPool, getConnection, initOracleClient, Pool } from "oracledb"
+import { BindParameters, createPool, initOracleClient, Pool } from "oracledb"
 import Model from "./Model";
 
 export default class Nessie {
