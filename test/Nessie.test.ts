@@ -35,4 +35,8 @@ describe("Nessie", function () {
         await db.close();
         assert.strictEqual(db.pool, null);
     });
+
+    after(async function () {
+        return db.close();
+    });
 });
