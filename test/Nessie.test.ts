@@ -28,4 +28,10 @@ describe("Nessie", function () {
         await db.sync(true);
         return db.execute(`SELECT ROWID FROM "${Example.tableName}" FETCH NEXT 0 ROWS ONLY`);
     });
+
+    it("close clears pool", async function () {
+        assert.notStrictEqual(db.pool, null);
+        await db.close();
+        assert.strictEqual(db.pool, null);
+    });
 });
