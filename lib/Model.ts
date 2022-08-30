@@ -249,7 +249,7 @@ export default class Model {
         const [valuesSql, bindParams] = this.parseEql(values);
         const [where] = this.parseEql(options.where, bindParams);
         const { rowsAffected } = await this._nessie!.execute(`UPDATE "${this.tableName}" SET ${valuesSql} WHERE ${where}`, bindParams, true);
-        return rowsAffected;
+        return rowsAffected ?? 0;
     }
 
     private async patch() {
@@ -270,7 +270,7 @@ export default class Model {
         this.initCheck();
         const [where, bindParams] = this.parseEql(options.where);
         const { rowsAffected } = await this._nessie!.execute(`DELETE FROM "${this.tableName}" WHERE ${where}`, bindParams, true);
-        return rowsAffected;
+        return rowsAffected ?? 0;
     }
 
     async destroy(options: any = {}) {
