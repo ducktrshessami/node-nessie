@@ -1,17 +1,18 @@
-import { BindParameters, Connection, Metadata, Result, Results } from "oracledb";
+import { BindParameters, Connection, Metadata, Pool, Result, Results } from "oracledb";
 
 export class Nessie {
     readonly models: any;
-    readonly connection: Connection | null;
+    readonly pool: Pool | null;
 
     constructor(protected configuration: any);
 
     addModels(...newModels: Array<typeof Model>): void;
-    connect(): Promise<void>;
-    execute(sql: string, bindParams: BindParameters = []): Promise<Result<any>>;
-    executeMany(sql: string, bindParams: Array<BindParameters>): Promise<Results<any>>;
+    initPool(): Promise<boolean>;
+    connect(): Promise<Connection>;
+    execute(sql: string, bindParams: BindParameters = [], commit: boolean = false): Promise<Result<any>>;
+    executeMany(sql: string, bindParams: Array<BindParameters>, commit: boolean = false): Promise<Results<any>>;
     sync(force: boolean = false): Promise<void>;
-    commit(): Promise<void>;
+    close(drainTime?: number): Promise<void>;
 }
 
 export class Model {

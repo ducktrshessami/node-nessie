@@ -151,4 +151,8 @@ describe("Model", function () {
             assert.strictEqual(instance.destroyed, true);
         });
     });
+
+    after(async function () {
+        return db.close();
+    });
 });

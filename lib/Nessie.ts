@@ -1,18 +1,18 @@
-import { BindParameters, Connection, getConnection, initOracleClient } from "oracledb"
+import { BindParameters, createPool, initOracleClient, Pool } from "oracledb"
 import Model from "./Model";
 
 export default class Nessie {
     private static initialized = false;
 
-    private _connection: Connection | null;
+    private _pool: Pool | null;
     readonly models: any;
 
-    get connection() {
-        return this._connection;
+    get pool() {
+        return this._pool;
     }
 
     constructor(protected configuration: any) {
-        this._connection = null;
+        this._pool = null;
         this.models = {};
         if (!Nessie.initialized) {
             initOracleClient(configuration);
@@ -24,28 +24,43 @@ export default class Nessie {
         newModels.forEach(model => this.models[model.name] = model);
     }
 
-    async connect() {
-        if (this._connection === null) {
-            this._connection = await getConnection(this.configuration);
+    async initPool() {
+        if (this._pool === null) {
+            this._pool = await createPool(this.configuration);
             return true;
         }
         return false;
     }
 
-    async execute(sql: string, bindParams: BindParameters = []) {
-        await this.connect();
+    async connect() {
+        await this.initPool();
+        return this._pool!.getConnection();
+    }
+
+    async execute(sql: string, bindParams: BindParameters = [], commit = false) {
+        const connection = await this.connect();
         if (this.configuration.verbose) {
             console.info(`Executing: ${sql}`);
         }
-        return this._connection!.execute(sql, bindParams);
+        const result = await connection.execute(sql, bindParams);
+        if (commit) {
+            await connection.commit();
+        }
+        await connection.close();
+        return result;
     }
 
-    async executeMany(sql: string, bindParams: Array<BindParameters>) {
-        await this.connect();
+    async executeMany(sql: string, bindParams: Array<BindParameters>, commit = false) {
+        const connection = await this.connect();
         if (this.configuration.verbose) {
             console.info(`Executing Many: ${sql}`);
         }
-        return this._connection!.executeMany(sql, bindParams);
+        const result = await connection.executeMany(sql, bindParams);
+        if (commit) {
+            await connection.commit();
+        }
+        await connection.close();
+        return result;
     }
 
     async sync(force = false) {
@@ -54,8 +69,8 @@ export default class Nessie {
         }
     }
 
-    async commit() {
-        await this.connect();
-        return this._connection!.commit();
+    async close(drainTime?: number) {
+        await (isNaN(drainTime!) ? this._pool?.close() : this._pool?.close(drainTime));
+        this._pool = null;
     }
 }

@@ -19,13 +19,24 @@ describe("Nessie", function () {
     });
 
     it("connects given proper configuration", async function () {
-        await db.connect();
-        assert(db.connection);
+        const connection = await db.connect();
+        assert(connection);
+        await connection.close();
     });
 
     it("can sync all initialized models", async function () {
         this.timeout(5000);
         await db.sync(true);
         return db.execute(`SELECT ROWID FROM "${Example.tableName}" FETCH NEXT 0 ROWS ONLY`);
+    });
+
+    it("close clears pool", async function () {
+        assert.notStrictEqual(db.pool, null);
+        await db.close();
+        assert.strictEqual(db.pool, null);
+    });
+
+    after(async function () {
+        return db.close();
     });
 });
