@@ -52,12 +52,17 @@ export default class Nessie {
         return result;
     }
 
-    async executeMany(sql: string, bindParams: Array<BindParameters>) {
-        await this.connect();
+    async executeMany(sql: string, bindParams: Array<BindParameters>, commit = false) {
+        const connection = await this.connect();
         if (this.configuration.verbose) {
             console.info(`Executing Many: ${sql}`);
         }
-        return this._connection!.executeMany(sql, bindParams);
+        const result = await connection.executeMany(sql, bindParams);
+        if (commit) {
+            await connection.commit();
+        }
+        await connection.close();
+        return result;
     }
 
     async sync(force = false) {
