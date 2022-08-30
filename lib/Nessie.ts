@@ -1,10 +1,11 @@
-import { BindParameters, Connection, getConnection, initOracleClient } from "oracledb"
+import { BindParameters, Connection, createPool, getConnection, initOracleClient, Pool } from "oracledb"
 import Model from "./Model";
 
 export default class Nessie {
     private static initialized = false;
 
     private _connection: Connection | null;
+    private _pool: Pool | null;
     readonly models: any;
 
     get connection() {
@@ -13,6 +14,7 @@ export default class Nessie {
 
     constructor(protected configuration: any) {
         this._connection = null;
+        this._pool = null;
         this.models = {};
         if (!Nessie.initialized) {
             initOracleClient(configuration);
@@ -22,6 +24,14 @@ export default class Nessie {
 
     addModels(...newModels: Array<typeof Model>) {
         newModels.forEach(model => this.models[model.name] = model);
+    }
+
+    async initPool() {
+        if (this._pool === null) {
+            this._pool = await createPool(this.configuration);
+            return true;
+        }
+        return false;
     }
 
     async connect() {
