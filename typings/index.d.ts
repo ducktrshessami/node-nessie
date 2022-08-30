@@ -12,6 +12,7 @@ export class Nessie {
     execute(sql: string, bindParams: BindParameters = [], commit: boolean = false): Promise<Result<any>>;
     executeMany(sql: string, bindParams: Array<BindParameters>, commit: boolean = false): Promise<Results<any>>;
     sync(force: boolean = false): Promise<void>;
+    close(drainTime?: number): Promise<void>;
 }
 
 export class Model {
