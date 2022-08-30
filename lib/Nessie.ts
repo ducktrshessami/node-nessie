@@ -68,4 +68,9 @@ export default class Nessie {
             await this.models[model].sync(force);
         }
     }
+
+    async close(drainTime?: number) {
+        await (isNaN(drainTime!) ? this._pool?.close() : this._pool?.close(drainTime));
+        this._pool = null;
+    }
 }
