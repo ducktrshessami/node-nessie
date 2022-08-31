@@ -27,6 +27,16 @@ export default class Model {
         return [];
     }
 
+    static get parentTableCount(): number {
+        if (this._associations) {
+            const parents = Object
+                .values(this._associations)
+                .filter((assocation: any) => assocation.source);
+            return parents.length;
+        }
+        return 0;
+    }
+
     get model() {
         return this.constructor as typeof Model;
     }

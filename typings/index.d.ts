@@ -19,6 +19,7 @@ export class Nessie {
 export class Model {
     static readonly tableName: string;
     static readonly primaryKeys: Array<string>;
+    static readonly parentTableCount: number;
 
     readonly model: typeof Model;
     readonly destroyed: boolean;
