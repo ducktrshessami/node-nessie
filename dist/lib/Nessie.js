@@ -19,7 +19,7 @@ class Nessie {
         this.configuration = configuration;
         this._pool = null;
         this.models = {};
-        if (!Nessie.initialized) {
+        if (this.configuration.libDir && !Nessie.initialized) {
             (0, oracledb_1.initOracleClient)(configuration);
             Nessie.initialized = true;
         }
