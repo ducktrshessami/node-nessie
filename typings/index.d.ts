@@ -7,6 +7,7 @@ export class Nessie {
     constructor(protected configuration: any);
 
     addModels(...newModels: Array<typeof Model>): void;
+    define(name: string, attributes: any, options: any): typeof Model;
     initPool(): Promise<boolean>;
     connect(): Promise<Connection>;
     execute(sql: string, bindParams: BindParameters = [], commit: boolean = false): Promise<Result<any>>;

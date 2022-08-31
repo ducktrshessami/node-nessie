@@ -24,6 +24,15 @@ export default class Nessie {
         newModels.forEach(model => this.models[model.name] = model);
     }
 
+    define(name: string, attributes: any, options: any) {
+        const NewModel = Object.defineProperty(class extends Model { }, "name", { value: name });
+        NewModel.init(attributes, {
+            ...options,
+            nessie: this
+        });
+        return NewModel;
+    }
+
     async initPool() {
         if (this._pool === null) {
             this._pool = await createPool(this.configuration);
