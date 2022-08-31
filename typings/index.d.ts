@@ -25,8 +25,8 @@ export class Model {
     dataValues: any;
 
     static init(attributes: any, options: any): void;
-    static hasMany(other: typeof Model, options: any): void;
-    static belongsTo(other: typeof Model, options: any): void;
+    static hasMany(other: typeof Model, options?: any): void;
+    static belongsTo(other: typeof Model, options?: any): void;
     static sync(force: boolean = false): Promise<void>;
     static create(values: any, options: { select: false }): Promise<void>;
     static create(values: any, options: any = {}): Promise<Model>;

@@ -56,11 +56,11 @@ export default class Model {
         this._nessie!.addModels(this);
     }
 
-    static hasMany(other: typeof Model, options: any) {
+    static hasMany(other: typeof Model, options: any = {}) {
 
     }
 
-    static belongsTo(other: typeof Model, options: any) {
+    static belongsTo(other: typeof Model, options: any = {}) {
 
     }
 
