@@ -58,6 +58,11 @@ export default class Model {
 
     private static parseForeignKey(source: typeof Model) {
         source.initCheck();
+        const sourceKey = source.primaryKeys[0] ?? "ROWID";
+        return {
+            name: `${upperCaseName(source.name)}${upperCaseName(sourceKey)}`,
+            sourceKey
+        };
     }
 
     static hasMany(other: typeof Model, options: any = {}) {
