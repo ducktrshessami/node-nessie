@@ -82,7 +82,7 @@ export default class Model {
                 .includes(attributeData.type),
             new ModelSyncError(`Invalid attribute type on model ${this.name}`)
         );
-        const sql = [key, attributeData.type];
+        const sql = [`"${key}"`, attributeData.type];
         if (attributeData.defaultValue) {
             sql.push(`DEFAULT ${formatValue(attributeData.defaultValue)}`);
         }
@@ -104,7 +104,9 @@ export default class Model {
         if (associationSql.length) {
             sql.push(...associationSql);
         }
-        const pkData = this.primaryKeys.join(", ");
+        const pkData = this.primaryKeys
+            .map(pk => `"${pk}"`)
+            .join(", ");
         if (pkData) {
             sql.push(`PRIMARY KEY (${pkData})`);
         }
@@ -135,7 +137,9 @@ export default class Model {
     private static parseValueSql(values: any): [string, string, BindParameters] {
         const attributes = this.formatAttributeKeys(values);
         const attributeKeys = Object.keys(attributes);
-        const attributeSql = attributeKeys.join(", ");
+        const attributeSql = attributeKeys
+            .map(attribute => `"${attribute}"`)
+            .join(", ");
         const bindParamSql = attributeKeys
             .map((_, i) => `:${i + 1}`)
             .join(", ");
@@ -161,7 +165,9 @@ export default class Model {
             return struct;
         }, {});
         const structureAttributeList = Object.keys(structure);
-        const structureAttributes = structureAttributeList.join(", ");
+        const structureAttributes = structureAttributeList
+            .map(attribute => `"${attribute}"`)
+            .join(", ");
         const bindParamSql = structureAttributeList
             .map((_, i) => `:${i + 1}`)
             .join(", ");
@@ -182,11 +188,11 @@ export default class Model {
         return attributes
             .reduce((data: Array<string>, attribute) => {
                 if (attribute in this._attributes || attribute in Pseudocolumns) {
-                    const sql = `"${this.tableName}".${attribute}`;
+                    const sql = `"${this.tableName}"."${attribute}"`;
                     data.push(sql);
                 }
                 return data;
-            }, [`"${this.tableName}".ROWID`])
+            }, [`"${this.tableName}"."ROWID"`])
             .join(", ");
     }
 
@@ -194,7 +200,7 @@ export default class Model {
         const attributes = this.formatAttributeKeys(values);
         const setSql = Object
             .keys(attributes)
-            .map((attribute, i) => `"${this.tableName}".${attribute} = :${i + bindParams.length + 1}`)
+            .map((attribute, i) => `"${this.tableName}"."${attribute}" = :${i + bindParams.length + 1}`)
             .join(", ");
         bindParams.push(...Object.values(attributes));
         return [setSql, bindParams];
