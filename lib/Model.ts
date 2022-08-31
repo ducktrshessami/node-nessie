@@ -52,7 +52,7 @@ export default class Model {
         Object
             .keys(attributes)
             .sort()
-            .forEach(key => this._attributes[key.toUpperCase()] = attributes[key]);
+            .forEach(key => this._attributes[key] = attributes[key]);
         this._nessie!.addModels(this);
     }
 
@@ -125,9 +125,8 @@ export default class Model {
             .keys(attributes)
             .sort()
             .reduce((formatted: any, key) => {
-                const upper = key.toUpperCase();
-                if (upper in this._attributes || upper in Pseudocolumns) {
-                    formatted[upper] = attributes[key];
+                if (key in this._attributes || key in Pseudocolumns) {
+                    formatted[key] = attributes[key];
                 }
                 return formatted;
             }, {});
@@ -182,9 +181,8 @@ export default class Model {
     private static parseSelectAttributeSql(attributes: Array<string> = Object.keys(this._attributes)) {
         return attributes
             .reduce((data: Array<string>, attribute) => {
-                const upper = attribute.toUpperCase();
-                const sql = `"${this.tableName}".${upper}`;
-                if ((upper in this._attributes || upper in Pseudocolumns) && !data.includes(sql)) {
+                if (attribute in this._attributes || attribute in Pseudocolumns) {
+                    const sql = `"${this.tableName}".${attribute}`;
                     data.push(sql);
                 }
                 return data;
