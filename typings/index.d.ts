@@ -1,4 +1,4 @@
-import { BindParameters, Connection, Metadata, Pool, Result, Results } from "oracledb";
+import { BindParameters, Connection, Pool, Result, Results } from "oracledb";
 
 export class Nessie {
     readonly models: any;
