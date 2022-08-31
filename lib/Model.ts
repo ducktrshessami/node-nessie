@@ -66,13 +66,13 @@ export default class Model {
     }
 
     static hasMany(other: typeof Model, options: any = {}) {
-        this._associations[other.name] = options.foreignKey ?? this.parseForeignKey(this);
-        this._associations[other.name].source = true;
+        this._associations[other.tableName] = options.foreignKey ?? this.parseForeignKey(this);
+        this._associations[other.tableName].source = false;
     }
 
     static belongsTo(other: typeof Model, options: any = {}) {
-        this._associations[other.name] = options.foreignKey ?? this.parseForeignKey(other);
-        this._associations[other.name].source = false;
+        this._associations[other.tableName] = options.foreignKey ?? this.parseForeignKey(other);
+        this._associations[other.tableName].source = true;
     }
 
     private static initCheck() {
