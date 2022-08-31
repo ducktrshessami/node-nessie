@@ -3,11 +3,11 @@ import { DataTypes, Model, Nessie } from "../";
 export default function ExampleModel(nessie: Nessie) {
     class Example extends Model { }
     Example.init({
-        ID: {
+        id: {
             type: DataTypes.NUMBER,
             primaryKey: true
         },
-        FOO: {
+        foo: {
             type: DataTypes.STRING,
             allowNull: false
         }
