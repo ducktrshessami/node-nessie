@@ -2,19 +2,20 @@ import Nessie from "./Nessie";
 import pluralize from "pluralize";
 import assert from "node:assert";
 import { ModelInitError, ModelSyncError } from "./errors/ModelError";
-import { DataTypes, Pseudocolumns } from "./utils/Constants";
+import { DataTypes, OnDeleteBehavior, Pseudocolumns } from "./utils/Constants";
 import { BindParameters, Metadata, Result } from "oracledb";
 
 export default class Model {
     private static _nessie?: Nessie;
     private static _tableName: string | null;
     private static _attributes: any = null;
+    private static _associations: any = null;
 
     private _destroyed: boolean;
     dataValues: any;
 
     static get tableName() {
-        return this._tableName ?? pluralize(this.name);
+        return this._tableName ?? pluralize(upperCaseName(this.name));
     }
 
     static get primaryKeys() {
@@ -24,6 +25,16 @@ export default class Model {
                 .filter(key => this._attributes[key].primaryKey);
         }
         return [];
+    }
+
+    static get parentTableCount(): number {
+        if (this._associations) {
+            const parents = Object
+                .values(this._associations)
+                .filter((assocation: any) => assocation.source);
+            return parents.length;
+        }
+        return 0;
     }
 
     get model() {
@@ -48,16 +59,46 @@ export default class Model {
         this._nessie = options.nessie;
         this._tableName = options.tableName ?? null;
         this._attributes = {};
+        this._associations = {};
         Object
             .keys(attributes)
             .sort()
-            .forEach(key => this._attributes[key.toUpperCase()] = attributes[key]);
+            .forEach(key => this._attributes[key] = attributes[key]);
         this._nessie!.addModels(this);
     }
 
     private static initCheck() {
-        assert(this._nessie && this._attributes, new ModelInitError(`Model not initialized: ${this.name}`));
+        assert(this._nessie && this._attributes && this._associations, new ModelInitError(`Model not initialized: ${this.name}`));
         assert(this._nessie instanceof Nessie, new ModelInitError(`Invalid Nessie instance on model ${this.name}`));
+    }
+
+    private static parseForeignKey(source: typeof Model) {
+        source.initCheck();
+        const sourceKey = source.primaryKeys[0] ?? "ROWID";
+        return {
+            foreignKey: `${upperCaseName(source.name)}${upperCaseName(sourceKey)}`,
+            sourceKey
+        };
+    }
+
+    static hasMany(other: typeof Model, options: any = {}) {
+        this.initCheck();
+        const association = options.foreignKey ?? this.parseForeignKey(this);
+        const upperDelete = options.onDelete?.toUpperCase();
+        association.onDelete = Object.values(OnDeleteBehavior).includes(upperDelete) ? upperDelete : OnDeleteBehavior.SET_NULL;
+        association.type = this._attributes[association.sourceKey].type;
+        association.source = false;
+        this._associations[other.tableName] = association;
+    }
+
+    static belongsTo(other: typeof Model, options: any = {}) {
+        this.initCheck();
+        const association = options.foreignKey ?? this.parseForeignKey(other);
+        const upperDelete = options.onDelete?.toUpperCase();
+        association.onDelete = Object.values(OnDeleteBehavior).includes(upperDelete) ? upperDelete : OnDeleteBehavior.SET_NULL;
+        association.type = other._attributes[association.sourceKey].type;
+        association.source = true;
+        this._associations[other.tableName] = association;
     }
 
     private static buildColumnSql(key: string, attributeData: any) {
@@ -67,7 +108,7 @@ export default class Model {
                 .includes(attributeData.type),
             new ModelSyncError(`Invalid attribute type on model ${this.name}`)
         );
-        const sql = [key, attributeData.type];
+        const sql = [`"${key}"`, attributeData.type];
         if (attributeData.defaultValue) {
             sql.push(`DEFAULT ${formatValue(attributeData.defaultValue)}`);
         }
@@ -77,11 +118,24 @@ export default class Model {
         return sql.join(" ");
     }
 
+    private static buildAssociationSql(): Array<string> {
+        return Object
+            .keys(this._associations)
+            .filter(association => this._associations[association].source)
+            .map(otherTableName => `"${this._associations[otherTableName].foreignKey}" ${this._associations[otherTableName].type} REFERENCES "${otherTableName}" ("${this._associations[otherTableName].sourceKey}") ON DELETE ${this._associations[otherTableName].onDelete}`);
+    }
+
     private static buildTableSql(attributesData: any) {
         const sql = Object
             .keys(attributesData)
             .map(key => this.buildColumnSql(key, attributesData[key]));
-        const pkData = this.primaryKeys.join(", ");
+        const associationSql = this.buildAssociationSql();
+        if (associationSql.length) {
+            sql.push(...associationSql);
+        }
+        const pkData = this.primaryKeys
+            .map(pk => `"${pk}"`)
+            .join(", ");
         if (pkData) {
             sql.push(`PRIMARY KEY (${pkData})`);
         }
@@ -91,7 +145,7 @@ export default class Model {
     static async sync(force = false) {
         this.initCheck();
         if (force) {
-            await this._nessie!.execute(`BEGIN EXECUTE IMMEDIATE 'DROP TABLE "${this.tableName}"'; EXCEPTION WHEN OTHERS THEN IF sqlcode <> -942 THEN raise; END IF; END;`);
+            await this._nessie!.execute(`BEGIN EXECUTE IMMEDIATE 'DROP TABLE "${this.tableName}" CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF sqlcode <> -942 THEN raise; END IF; END;`);
         }
         const columnSql = this.buildTableSql(this._attributes);
         await this._nessie!.execute(`BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "${this.tableName}" (${columnSql})'; EXCEPTION WHEN OTHERS THEN IF sqlcode <> -955 THEN raise; END IF; END;`);
@@ -102,9 +156,8 @@ export default class Model {
             .keys(attributes)
             .sort()
             .reduce((formatted: any, key) => {
-                const upper = key.toUpperCase();
-                if (upper in this._attributes || upper in Pseudocolumns) {
-                    formatted[upper] = attributes[key];
+                if (key in this._attributes || key in Pseudocolumns) {
+                    formatted[key] = attributes[key];
                 }
                 return formatted;
             }, {});
@@ -113,7 +166,9 @@ export default class Model {
     private static parseValueSql(values: any): [string, string, BindParameters] {
         const attributes = this.formatAttributeKeys(values);
         const attributeKeys = Object.keys(attributes);
-        const attributeSql = attributeKeys.join(", ");
+        const attributeSql = attributeKeys
+            .map(attribute => `"${attribute}"`)
+            .join(", ");
         const bindParamSql = attributeKeys
             .map((_, i) => `:${i + 1}`)
             .join(", ");
@@ -139,7 +194,9 @@ export default class Model {
             return struct;
         }, {});
         const structureAttributeList = Object.keys(structure);
-        const structureAttributes = structureAttributeList.join(", ");
+        const structureAttributes = structureAttributeList
+            .map(attribute => `"${attribute}"`)
+            .join(", ");
         const bindParamSql = structureAttributeList
             .map((_, i) => `:${i + 1}`)
             .join(", ");
@@ -159,13 +216,12 @@ export default class Model {
     private static parseSelectAttributeSql(attributes: Array<string> = Object.keys(this._attributes)) {
         return attributes
             .reduce((data: Array<string>, attribute) => {
-                const upper = attribute.toUpperCase();
-                const sql = `"${this.tableName}".${upper}`;
-                if ((upper in this._attributes || upper in Pseudocolumns) && !data.includes(sql)) {
+                if (attribute in this._attributes || attribute in Pseudocolumns) {
+                    const sql = `"${this.tableName}"."${attribute}"`;
                     data.push(sql);
                 }
                 return data;
-            }, [`"${this.tableName}".ROWID`])
+            }, [`"${this.tableName}"."ROWID"`])
             .join(", ");
     }
 
@@ -173,7 +229,7 @@ export default class Model {
         const attributes = this.formatAttributeKeys(values);
         const setSql = Object
             .keys(attributes)
-            .map((attribute, i) => `"${this.tableName}".${attribute} = :${i + bindParams.length + 1}`)
+            .map((attribute, i) => `"${this.tableName}"."${attribute}" = :${i + bindParams.length + 1}`)
             .join(", ");
         bindParams.push(...Object.values(attributes));
         return [setSql, bindParams];
@@ -282,6 +338,10 @@ export default class Model {
             this._destroyed = true;
         }
     }
+}
+
+function upperCaseName(name: string) {
+    return name[0].toUpperCase() + name.slice(1);
 }
 
 function formatValue(value: any): string {

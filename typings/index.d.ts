@@ -7,6 +7,7 @@ export class Nessie {
     constructor(protected configuration: any);
 
     addModels(...newModels: Array<typeof Model>): void;
+    define(name: string, attributes: any, options: any): typeof Model;
     initPool(): Promise<boolean>;
     connect(): Promise<Connection>;
     execute(sql: string, bindParams: BindParameters = [], commit: boolean = false): Promise<Result<any>>;
@@ -18,6 +19,7 @@ export class Nessie {
 export class Model {
     static readonly tableName: string;
     static readonly primaryKeys: Array<string>;
+    static readonly parentTableCount: number;
 
     readonly model: typeof Model;
     readonly destroyed: boolean;
@@ -25,6 +27,8 @@ export class Model {
     dataValues: any;
 
     static init(attributes: any, options: any): void;
+    static hasMany(other: typeof Model, options?: any): void;
+    static belongsTo(other: typeof Model, options?: any): void;
     static sync(force: boolean = false): Promise<void>;
     static create(values: any, options: { select: false }): Promise<void>;
     static create(values: any, options: any = {}): Promise<Model>;

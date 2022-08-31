@@ -2,10 +2,12 @@ import { config } from "dotenv";
 import assert from "assert";
 import { Model, Nessie } from "../";
 import ExampleModel from "./ExampleModel";
+import ChildModel from "./ChildModel";
 
 describe("Nessie", function () {
     let db: Nessie;
     let Example: typeof Model;
+    let Child: typeof Model;
 
     before(function () {
         config();
@@ -15,7 +17,10 @@ describe("Nessie", function () {
             password: process.env.DB_PASSWORD,
             connectionString: process.env.DB_CONNECTSTRING
         });
+        Child = ChildModel(db);
         Example = ExampleModel(db);
+        Example.hasMany(Child, { onDelete: "cascade" });
+        Child.belongsTo(Example);
     });
 
     it("connects given proper configuration", async function () {
@@ -27,7 +32,8 @@ describe("Nessie", function () {
     it("can sync all initialized models", async function () {
         this.timeout(5000);
         await db.sync(true);
-        return db.execute(`SELECT ROWID FROM "${Example.tableName}" FETCH NEXT 0 ROWS ONLY`);
+        await db.execute(`SELECT "${Example.tableName}"."ROWID" FROM "${Example.tableName}" FETCH NEXT 0 ROWS ONLY`);
+        await db.execute(`SELECT "${Child.tableName}"."ROWID" FROM "${Child.tableName}" FETCH NEXT 0 ROWS ONLY`);
     });
 
     it("close clears pool", async function () {
