@@ -8,62 +8,104 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const oracledb_1 = require("oracledb");
+const Model_1 = __importDefault(require("./Model"));
 class Nessie {
     constructor(configuration) {
         this.configuration = configuration;
-        this._connection = null;
+        this._pool = null;
         this.models = {};
         if (!Nessie.initialized) {
             (0, oracledb_1.initOracleClient)(configuration);
             Nessie.initialized = true;
         }
     }
-    get connection() {
-        return this._connection;
+    get pool() {
+        return this._pool;
     }
     addModels(...newModels) {
         newModels.forEach(model => this.models[model.name] = model);
     }
-    connect() {
+    define(name, attributes, options) {
+        const NewModel = Object.defineProperty(class extends Model_1.default {
+        }, "name", { value: name });
+        NewModel.init(attributes, Object.assign(Object.assign({}, options), { nessie: this }));
+        return NewModel;
+    }
+    initPool() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this._connection === null) {
-                this._connection = yield (0, oracledb_1.getConnection)(this.configuration);
+            if (this._pool === null) {
+                this._pool = yield (0, oracledb_1.createPool)(this.configuration);
                 return true;
             }
             return false;
         });
     }
-    execute(sql, bindParams = []) {
+    connect() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.connect();
-            if (this.configuration.verbose) {
-                console.info(`Executing: ${sql}`);
-            }
-            return this._connection.execute(sql, bindParams);
+            yield this.initPool();
+            return this._pool.getConnection();
         });
     }
-    executeMany(sql, bindParams) {
+    execute(sql, bindParams = [], commit = false) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.connect();
-            if (this.configuration.verbose) {
-                console.info(`Executing Many: ${sql}`);
+            const connection = yield this.connect();
+            try {
+                if (this.configuration.verbose) {
+                    console.info(`Executing: ${sql}`);
+                }
+                const result = yield connection.execute(sql, bindParams);
+                if (commit) {
+                    yield connection.commit();
+                }
+                yield connection.close();
+                return result;
             }
-            return this._connection.executeMany(sql, bindParams);
+            catch (err) {
+                yield connection.close();
+                throw err;
+            }
+        });
+    }
+    executeMany(sql, bindParams, commit = false) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const connection = yield this.connect();
+            try {
+                if (this.configuration.verbose) {
+                    console.info(`Executing Many: ${sql}`);
+                }
+                const result = yield connection.executeMany(sql, bindParams);
+                if (commit) {
+                    yield connection.commit();
+                }
+                yield connection.close();
+                return result;
+            }
+            catch (err) {
+                yield connection.close();
+                throw err;
+            }
         });
     }
     sync(force = false) {
         return __awaiter(this, void 0, void 0, function* () {
-            for (const model in this.models) {
-                yield this.models[model].sync(force);
+            const sortedModels = Object
+                .values(this.models)
+                .sort((a, b) => a.parentTableCount - b.parentTableCount);
+            for (const model of sortedModels) {
+                yield model.sync(force);
             }
         });
     }
-    commit() {
+    close(drainTime) {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.connect();
-            return this._connection.commit();
+            yield (isNaN(drainTime) ? (_a = this._pool) === null || _a === void 0 ? void 0 : _a.close() : (_b = this._pool) === null || _b === void 0 ? void 0 : _b.close(drainTime));
+            this._pool = null;
         });
     }
 }

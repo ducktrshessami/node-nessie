@@ -1,22 +1,25 @@
-import { BindParameters, Connection, Metadata, Result, Results } from "oracledb";
+import { BindParameters, Connection, Pool, Result, Results } from "oracledb";
 
 export class Nessie {
     readonly models: any;
-    readonly connection: Connection | null;
+    readonly pool: Pool | null;
 
     constructor(protected configuration: any);
 
     addModels(...newModels: Array<typeof Model>): void;
-    connect(): Promise<void>;
-    execute(sql: string, bindParams: BindParameters = []): Promise<Result<any>>;
-    executeMany(sql: string, bindParams: Array<BindParameters>): Promise<Results<any>>;
+    define(name: string, attributes: any, options: any): typeof Model;
+    initPool(): Promise<boolean>;
+    connect(): Promise<Connection>;
+    execute(sql: string, bindParams: BindParameters = [], commit: boolean = false): Promise<Result<any>>;
+    executeMany(sql: string, bindParams: Array<BindParameters>, commit: boolean = false): Promise<Results<any>>;
     sync(force: boolean = false): Promise<void>;
-    commit(): Promise<void>;
+    close(drainTime?: number): Promise<void>;
 }
 
 export class Model {
     static readonly tableName: string;
     static readonly primaryKeys: Array<string>;
+    static readonly parentTableCount: number;
 
     readonly model: typeof Model;
     readonly destroyed: boolean;
@@ -24,6 +27,8 @@ export class Model {
     dataValues: any;
 
     static init(attributes: any, options: any): void;
+    static hasMany(other: typeof Model, options?: any): void;
+    static belongsTo(other: typeof Model, options?: any): void;
     static sync(force: boolean = false): Promise<void>;
     static create(values: any, options: { select: false }): Promise<void>;
     static create(values: any, options: any = {}): Promise<Model>;
