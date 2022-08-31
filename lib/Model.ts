@@ -56,12 +56,18 @@ export default class Model {
         this._nessie!.addModels(this);
     }
 
-    static hasMany(other: typeof Model, options: any = {}) {
+    private static parseForeignKey(source: typeof Model) {
+        source.initCheck();
+    }
 
+    static hasMany(other: typeof Model, options: any = {}) {
+        this._associations[other.name] = options.foreignKey ?? this.parseForeignKey(this);
+        this._associations[other.name].source = true;
     }
 
     static belongsTo(other: typeof Model, options: any = {}) {
-
+        this._associations[other.name] = options.foreignKey ?? this.parseForeignKey(other);
+        this._associations[other.name].source = false;
     }
 
     private static initCheck() {
@@ -86,10 +92,18 @@ export default class Model {
         return sql.join(" ");
     }
 
+    private static buildAssociationSql(): Array<string> {
+
+    }
+
     private static buildTableSql(attributesData: any) {
         const sql = Object
             .keys(attributesData)
             .map(key => this.buildColumnSql(key, attributesData[key]));
+        const associationSql = this.buildAssociationSql();
+        if (associationSql.length) {
+            sql.push(...associationSql);
+        }
         const pkData = this.primaryKeys.join(", ");
         if (pkData) {
             sql.push(`PRIMARY KEY (${pkData})`);
