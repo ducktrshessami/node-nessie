@@ -19,7 +19,7 @@ describe("Model", function () {
     });
 
     describe("static members", function () {
-        it("pluralizes class name for table name", function () {
+        it("capitalizes and pluralizes class name for table name", function () {
             assert.strictEqual(db.models.Example.tableName, "Examples");
         });
 
