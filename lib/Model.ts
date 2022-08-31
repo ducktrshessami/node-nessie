@@ -9,6 +9,7 @@ export default class Model {
     private static _nessie?: Nessie;
     private static _tableName: string | null;
     private static _attributes: any = null;
+    private static _associations: any = {};
 
     private _destroyed: boolean;
     dataValues: any;
@@ -53,6 +54,14 @@ export default class Model {
             .sort()
             .forEach(key => this._attributes[key.toUpperCase()] = attributes[key]);
         this._nessie!.addModels(this);
+    }
+
+    static hasMany(other: typeof Model, options: any) {
+
+    }
+
+    static belongsTo(other: typeof Model, options: any) {
+
     }
 
     private static initCheck() {
