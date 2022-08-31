@@ -17,8 +17,8 @@ describe("Nessie", function () {
             password: process.env.DB_PASSWORD,
             connectionString: process.env.DB_CONNECTSTRING
         });
-        Example = ExampleModel(db);
         Child = ChildModel(db);
+        Example = ExampleModel(db);
         Example.hasMany(Child, { onDelete: "cascade" });
         Child.belongsTo(Example);
     });
