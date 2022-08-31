@@ -15,7 +15,7 @@ export default class Model {
     dataValues: any;
 
     static get tableName() {
-        return this._tableName ?? pluralize(this.name[0].toUpperCase() + this.name.slice(1));
+        return this._tableName ?? pluralize(upperCaseName(this.name));
     }
 
     static get primaryKeys() {
@@ -309,6 +309,10 @@ export default class Model {
             this._destroyed = true;
         }
     }
+}
+
+function upperCaseName(name: string) {
+    return name[0].toUpperCase() + name.slice(1);
 }
 
 function formatValue(value: any): string {
