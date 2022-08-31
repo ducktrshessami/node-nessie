@@ -85,8 +85,11 @@ export default class Nessie {
     }
 
     async sync(force = false) {
-        for (const model in this.models) {
-            await this.models[model].sync(force);
+        const sortedModels = Object
+            .values(this.models)
+            .sort((a: any, b: any) => a.parentTableCount - b.parentTableCount) as Array<typeof Model>;
+        for (const model of sortedModels) {
+            await model.sync(force);
         }
     }
 
