@@ -15,7 +15,7 @@ export default class Model {
     dataValues: any;
 
     static get tableName() {
-        return this._tableName ?? pluralize(this.name);
+        return this._tableName ?? pluralize(this.name[0].toUpperCase() + this.name.slice(1));
     }
 
     static get primaryKeys() {
