@@ -24,6 +24,7 @@ describe("Nessie", function () {
     });
 
     it("connects given proper configuration", async function () {
+        this.timeout(5000);
         const connection = await db.connect();
         assert(connection);
         await connection.close();
