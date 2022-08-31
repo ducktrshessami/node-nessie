@@ -14,7 +14,7 @@ export default class Nessie {
     constructor(protected configuration: any) {
         this._pool = null;
         this.models = {};
-        if (!Nessie.initialized) {
+        if (this.configuration.libDir && !Nessie.initialized) {
             initOracleClient(configuration);
             Nessie.initialized = true;
         }
