@@ -10,6 +10,10 @@ export default function ExampleModel(nessie: Nessie) {
         foo: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        bar: {
+            type: DataTypes.STRING,
+            defaultValue: "foobar"
         }
     }, { nessie });
     return Example;
