@@ -39,28 +39,40 @@ export default class Nessie {
 
     async execute(sql: string, bindParams: BindParameters = [], commit = false) {
         const connection = await this.connect();
-        if (this.configuration.verbose) {
-            console.info(`Executing: ${sql}`);
+        try {
+            if (this.configuration.verbose) {
+                console.info(`Executing: ${sql}`);
+            }
+            const result = await connection.execute(sql, bindParams);
+            if (commit) {
+                await connection.commit();
+            }
+            await connection.close();
+            return result;
         }
-        const result = await connection.execute(sql, bindParams);
-        if (commit) {
-            await connection.commit();
+        catch (err) {
+            await connection.close();
+            throw err;
         }
-        await connection.close();
-        return result;
     }
 
     async executeMany(sql: string, bindParams: Array<BindParameters>, commit = false) {
         const connection = await this.connect();
-        if (this.configuration.verbose) {
-            console.info(`Executing Many: ${sql}`);
+        try {
+            if (this.configuration.verbose) {
+                console.info(`Executing Many: ${sql}`);
+            }
+            const result = await connection.executeMany(sql, bindParams);
+            if (commit) {
+                await connection.commit();
+            }
+            await connection.close();
+            return result;
         }
-        const result = await connection.executeMany(sql, bindParams);
-        if (commit) {
-            await connection.commit();
+        catch (err) {
+            await connection.close();
+            throw err;
         }
-        await connection.close();
-        return result;
     }
 
     async sync(force = false) {
