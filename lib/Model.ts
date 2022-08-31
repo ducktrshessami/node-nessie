@@ -2,14 +2,14 @@ import Nessie from "./Nessie";
 import pluralize from "pluralize";
 import assert from "node:assert";
 import { ModelInitError, ModelSyncError } from "./errors/ModelError";
-import { DataTypes, Pseudocolumns } from "./utils/Constants";
+import { DataTypes, OnDeleteBehavior, Pseudocolumns } from "./utils/Constants";
 import { BindParameters, Metadata, Result } from "oracledb";
 
 export default class Model {
     private static _nessie?: Nessie;
     private static _tableName: string | null;
     private static _attributes: any = null;
-    private static _associations: any = {};
+    private static _associations: any = null;
 
     private _destroyed: boolean;
     dataValues: any;
@@ -49,6 +49,7 @@ export default class Model {
         this._nessie = options.nessie;
         this._tableName = options.tableName ?? null;
         this._attributes = {};
+        this._associations = {};
         Object
             .keys(attributes)
             .sort()
@@ -56,28 +57,38 @@ export default class Model {
         this._nessie!.addModels(this);
     }
 
+    private static initCheck() {
+        assert(this._nessie && this._attributes && this._associations, new ModelInitError(`Model not initialized: ${this.name}`));
+        assert(this._nessie instanceof Nessie, new ModelInitError(`Invalid Nessie instance on model ${this.name}`));
+    }
+
     private static parseForeignKey(source: typeof Model) {
         source.initCheck();
         const sourceKey = source.primaryKeys[0] ?? "ROWID";
         return {
-            name: `${upperCaseName(source.name)}${upperCaseName(sourceKey)}`,
+            foreignKey: `${upperCaseName(source.name)}${upperCaseName(sourceKey)}`,
             sourceKey
         };
     }
 
     static hasMany(other: typeof Model, options: any = {}) {
-        this._associations[other.tableName] = options.foreignKey ?? this.parseForeignKey(this);
-        this._associations[other.tableName].source = false;
+        this.initCheck();
+        const association = options.foreignKey ?? this.parseForeignKey(this);
+        const upperDelete = options.onDelete?.toUpperCase();
+        association.onDelete = Object.values(OnDeleteBehavior).includes(upperDelete) ? upperDelete : OnDeleteBehavior.SET_NULL;
+        association.type = this._attributes[association.sourceKey].type;
+        association.source = false;
+        this._associations[other.tableName] = association;
     }
 
     static belongsTo(other: typeof Model, options: any = {}) {
-        this._associations[other.tableName] = options.foreignKey ?? this.parseForeignKey(other);
-        this._associations[other.tableName].source = true;
-    }
-
-    private static initCheck() {
-        assert(this._nessie && this._attributes, new ModelInitError(`Model not initialized: ${this.name}`));
-        assert(this._nessie instanceof Nessie, new ModelInitError(`Invalid Nessie instance on model ${this.name}`));
+        this.initCheck();
+        const association = options.foreignKey ?? this.parseForeignKey(other);
+        const upperDelete = options.onDelete?.toUpperCase();
+        association.onDelete = Object.values(OnDeleteBehavior).includes(upperDelete) ? upperDelete : OnDeleteBehavior.SET_NULL;
+        association.type = other._attributes[association.sourceKey].type;
+        association.source = true;
+        this._associations[other.tableName] = association;
     }
 
     private static buildColumnSql(key: string, attributeData: any) {
@@ -98,7 +109,10 @@ export default class Model {
     }
 
     private static buildAssociationSql(): Array<string> {
-
+        return Object
+            .keys(this._associations)
+            .filter(association => this._associations[association].source)
+            .map(otherTableName => `"${this._associations[otherTableName].foreignKey}" ${this._associations[otherTableName].type} REFERENCES "${otherTableName}" ("${this._associations[otherTableName].sourceKey}") ON DELETE ${this._associations[otherTableName].onDelete}`);
     }
 
     private static buildTableSql(attributesData: any) {
