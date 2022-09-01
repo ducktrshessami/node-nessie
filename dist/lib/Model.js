@@ -35,6 +35,15 @@ class Model {
         }
         return [];
     }
+    static get foreignKeys() {
+        if (this._associations) {
+            return Object
+                .values(this._associations)
+                .filter((association) => association.source)
+                .map((association) => association.foreignKey);
+        }
+        return [];
+    }
     static get parentTableCount() {
         if (this._associations) {
             const parents = Object
@@ -148,7 +157,7 @@ class Model {
             .keys(attributes)
             .sort()
             .reduce((formatted, key) => {
-            if (key in this._attributes || key in Constants_1.Pseudocolumns) {
+            if (key in this._attributes || key in Constants_1.Pseudocolumns || this.foreignKeys.includes(key)) {
                 formatted[key] = attributes[key];
             }
             return formatted;
@@ -208,7 +217,7 @@ class Model {
     static parseSelectAttributeSql(attributes = Object.keys(this._attributes)) {
         return attributes
             .reduce((data, attribute) => {
-            if (attribute in this._attributes || attribute in Constants_1.Pseudocolumns) {
+            if (attribute in this._attributes || attribute in Constants_1.Pseudocolumns || this.foreignKeys.includes(attribute)) {
                 const sql = `"${this.tableName}"."${attribute}"`;
                 data.push(sql);
             }
