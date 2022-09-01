@@ -5,12 +5,10 @@ export default function ExampleModel(nessie: Nessie) {
     Example.init({
         id: {
             type: DataTypes.NUMBER,
-            primaryKey: true
-        },
-        foo: {
-            type: DataTypes.STRING,
+            primaryKey: true,
             allowNull: false
         },
+        foo: DataTypes.STRING,
         bar: {
             type: DataTypes.STRING,
             defaultValue: "foobar"
