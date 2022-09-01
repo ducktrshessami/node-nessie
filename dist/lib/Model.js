@@ -62,7 +62,7 @@ class Model {
         Object
             .keys(attributes)
             .sort()
-            .forEach(key => this._attributes[key] = attributes[key]);
+            .forEach(key => this._attributes[key] = typeof attributes[key] === "object" ? attributes[key] : { type: attributes[key] });
         this._nessie.addModels(this);
     }
     static initCheck() {
