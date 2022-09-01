@@ -1,4 +1,4 @@
-import { DataTypes, Model, Nessie } from "../";
+import { DataTypes, Model, Nessie } from "../../";
 
 export default function ChildModel(nessie: Nessie) {
     class Child extends Model { }
