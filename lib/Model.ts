@@ -27,6 +27,13 @@ export default class Model {
         return [];
     }
 
+    static get foreignKeys(): Array<string> {
+        if (this._associations) {
+
+        }
+        return [];
+    }
+
     static get parentTableCount(): number {
         if (this._associations) {
             const parents = Object
@@ -156,7 +163,7 @@ export default class Model {
             .keys(attributes)
             .sort()
             .reduce((formatted: any, key) => {
-                if (key in this._attributes || key in Pseudocolumns) {
+                if (key in this._attributes || key in Pseudocolumns || this.foreignKeys.includes(key)) {
                     formatted[key] = attributes[key];
                 }
                 return formatted;
@@ -216,7 +223,7 @@ export default class Model {
     private static parseSelectAttributeSql(attributes: Array<string> = Object.keys(this._attributes)) {
         return attributes
             .reduce((data: Array<string>, attribute) => {
-                if (attribute in this._attributes || attribute in Pseudocolumns) {
+                if (attribute in this._attributes || attribute in Pseudocolumns || this.foreignKeys.includes(attribute)) {
                     const sql = `"${this.tableName}"."${attribute}"`;
                     data.push(sql);
                 }
