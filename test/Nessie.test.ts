@@ -1,8 +1,7 @@
 import { config } from "dotenv";
 import assert from "assert";
 import { Model, Nessie } from "../";
-import ExampleModel from "./ExampleModel";
-import ChildModel from "./ChildModel";
+import initModels from "./models";
 
 describe("Nessie", function () {
     let db: Nessie;
@@ -17,10 +16,7 @@ describe("Nessie", function () {
             password: process.env.DB_PASSWORD,
             connectionString: process.env.DB_CONNECTSTRING
         });
-        Child = ChildModel(db);
-        Example = ExampleModel(db);
-        Example.hasMany(Child, { onDelete: "cascade" });
-        Child.belongsTo(Example);
+        [Example, Child] = initModels(db);
     });
 
     it("connects given proper configuration", async function () {

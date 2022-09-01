@@ -1,11 +1,12 @@
 import assert from "assert";
 import { config } from "dotenv";
 import { Model, Nessie } from "../";
-import ExampleModel from "./ExampleModel";
+import initModels from "./models";
 
 describe("Model", function () {
     let db: Nessie;
     let Example: typeof Model;
+    let Child: typeof Model;
 
     before(function () {
         config();
@@ -15,7 +16,7 @@ describe("Model", function () {
             password: process.env.DB_PASSWORD,
             connectionString: process.env.DB_CONNECTSTRING
         });
-        Example = ExampleModel(db);
+        [Example, Child] = initModels(db);
     });
 
     describe("static members", function () {
