@@ -29,7 +29,10 @@ export default class Model {
 
     static get foreignKeys(): Array<string> {
         if (this._associations) {
-
+            return Object
+                .values(this._associations)
+                .filter((association: any) => association.source)
+                .map((association: any) => association.foreignKey);
         }
         return [];
     }
