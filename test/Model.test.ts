@@ -28,6 +28,10 @@ describe("Model", function () {
             assert.strictEqual(db.models.Example, Example);
         });
 
+        it("properly generates foreignKeys if not specified", function () {
+            assert.strictEqual(Child.foreignKeys[0], "ExampleId");
+        });
+
         it("syncs with db properly", async function () {
             this.timeout(5000);
             await Example.sync(true);
