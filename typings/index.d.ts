@@ -64,6 +64,12 @@ export class Nessie {
     close(drainTime?: number): Promise<void>;
 }
 
+type AssociationOptions = {
+    foreignKey?: string,
+    sourceKey?: string,
+    onDelete?: OnDeleteBehavior
+};
+
 export class Model {
     static readonly tableName: string;
     static readonly primaryKeys: Array<string>;
@@ -76,8 +82,8 @@ export class Model {
     dataValues: any;
 
     static init(attributes: ModelAttributes, options: ModelInitOptions): void;
-    static hasMany(other: typeof Model, options?: any): void;
-    static belongsTo(other: typeof Model, options?: any): void;
+    static hasMany(other: typeof Model, options?: AssociationOptions): void;
+    static belongsTo(other: typeof Model, options?: AssociationOptions): void;
     static sync(force?: boolean): Promise<void>;
     static create(values: any, options: { select: false }): Promise<void>;
     static create(values: any, options?: any): Promise<Model>;
