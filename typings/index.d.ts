@@ -74,6 +74,10 @@ type ModelCreateOptions = {
     select?: boolean
 };
 
+type ModelBulkCreateOptions = {
+    ignoreDuplicates?: boolean
+};
+
 export class Model {
     static readonly tableName: string;
     static readonly primaryKeys: Array<string>;
@@ -91,7 +95,7 @@ export class Model {
     static sync(force?: boolean): Promise<void>;
     static create(values: any, options: { select: false }): Promise<void>;
     static create(values: any, options?: ModelCreateOptions): Promise<Model>;
-    static bulkCreate(values: Array<any>, options?: any): Promise<number>;
+    static bulkCreate(values: Array<any>, options?: ModelBulkCreateOptions): Promise<number>;
     static findAll(options?: any): Promise<Array<Model>>;
     static findOne(options?: any): Promise<Model | null>;
     static findByRowId(rowId: string): Promise<Model | null>;
