@@ -1,11 +1,17 @@
-import { BindParameters, Connection, Pool, Result, Results } from "oracledb";
+import { BindParameters, Connection, InitialiseOptions, Pool, PoolAttributes, Result, Results } from "oracledb";
+
+type NessieInitOptions = {
+    verbose?: boolean
+}
+
+type NessieConfiguration = NessieInitOptions & PoolAttributes & InitialiseOptions;
 
 export class Nessie {
-    protected configuration: any;
+    protected configuration: NessieConfiguration;
     readonly models: any;
     readonly pool: Pool | null;
 
-    constructor(configuration: any);
+    constructor(configuration: NessieConfiguration);
 
     addModels(...newModels: Array<typeof Model>): void;
     define(name: string, attributes: any, options: any): typeof Model;
