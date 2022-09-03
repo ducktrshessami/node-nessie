@@ -6,9 +6,13 @@ type NessieInitOptions = {
 
 type NessieConfiguration = NessieInitOptions & PoolAttributes & InitialiseOptions;
 
+interface InitializedModels {
+    [key: string]: typeof Model;
+}
+
 export class Nessie {
     protected configuration: NessieConfiguration;
-    readonly models: any;
+    readonly models: InitializedModels;
     readonly pool: Pool | null;
 
     constructor(configuration: NessieConfiguration);
