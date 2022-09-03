@@ -31,6 +31,7 @@ export class Model {
     static init(attributes: any, options: any): void;
     static hasMany(other: typeof Model, options?: any): void;
     static belongsTo(other: typeof Model, options?: any): void;
+    static drop(cascade?: boolean): Promise<void>;
     static sync(force?: boolean): Promise<void>;
     static create(values: any, options: { select: false }): Promise<void>;
     static create(values: any, options?: any): Promise<Model>;
