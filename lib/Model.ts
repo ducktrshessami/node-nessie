@@ -152,10 +152,16 @@ export default class Model {
         return sql.join(", ");
     }
 
+    static async drop(cascade = false) {
+        this.initCheck();
+        const cascadeSql = cascade ? " CASCADE CONSTRAINTS" : "";
+        await this._nessie!.execute(`BEGIN EXECUTE IMMEDIATE 'DROP TABLE "${this.tableName}"${cascadeSql}'; EXCEPTION WHEN OTHERS THEN IF sqlcode <> -942 THEN raise; END IF; END;`);
+    }
+
     static async sync(force = false) {
         this.initCheck();
         if (force) {
-            await this._nessie!.execute(`BEGIN EXECUTE IMMEDIATE 'DROP TABLE "${this.tableName}" CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF sqlcode <> -942 THEN raise; END IF; END;`);
+            await this.drop(true);
         }
         const columnSql = this.buildTableSql(this._attributes);
         await this._nessie!.execute(`BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "${this.tableName}" (${columnSql})'; EXCEPTION WHEN OTHERS THEN IF sqlcode <> -955 THEN raise; END IF; END;`);
