@@ -78,6 +78,21 @@ type ModelBulkCreateOptions = {
     ignoreDuplicates?: boolean
 };
 
+interface ModelQueryAttributeData {
+    [key: string]: any;
+}
+
+type FindOneModelOptions = {
+    where: ModelQueryAttributeData,
+    attributes?: Array<string>
+};
+
+type FindAllModelOptions = FindOneModelOptions & { limit?: number };
+
+type FindOrCreateModelOptions = FindOneModelOptions & {
+    defaults?: ModelQueryAttributeData
+};
+
 export class Model {
     static readonly tableName: string;
     static readonly primaryKeys: Array<string>;
@@ -87,22 +102,22 @@ export class Model {
     readonly model: typeof Model;
     readonly destroyed: boolean;
     readonly rowId: string;
-    dataValues: any;
+    dataValues: ModelQueryAttributeData;
 
     static init(attributes: ModelAttributes, options: ModelInitOptions): void;
     static hasMany(other: typeof Model, options?: AssociationOptions): void;
     static belongsTo(other: typeof Model, options?: AssociationOptions): void;
     static sync(force?: boolean): Promise<void>;
-    static create(values: any, options: { select: false }): Promise<void>;
-    static create(values: any, options?: ModelCreateOptions): Promise<Model>;
-    static bulkCreate(values: Array<any>, options?: ModelBulkCreateOptions): Promise<number>;
-    static findAll(options?: any): Promise<Array<Model>>;
-    static findOne(options?: any): Promise<Model | null>;
+    static create(values: ModelQueryAttributeData, options: { select: false }): Promise<void>;
+    static create(values: ModelQueryAttributeData, options?: ModelCreateOptions): Promise<Model>;
+    static bulkCreate(values: Array<ModelQueryAttributeData>, options?: ModelBulkCreateOptions): Promise<number>;
+    static findAll(options?: FindAllModelOptions): Promise<Array<Model>>;
+    static findOne(options?: FindOneModelOptions): Promise<Model | null>;
     static findByRowId(rowId: string): Promise<Model | null>;
-    static findOrCreate(options: any): Promise<[Model, boolean]>;
-    static update(values: any, options: any): Promise<number>;
+    static findOrCreate(options: FindOrCreateModelOptions): Promise<[Model, boolean]>;
+    static update(values: ModelQueryAttributeData, options: any): Promise<number>;
     static destroy(options: any): Promise<number>;
 
-    update(values: any, options?: any): Promise<this>;
+    update(values: ModelQueryAttributeData, options?: any): Promise<this>;
     destroy(options?: any): Promise<void>;
 }
