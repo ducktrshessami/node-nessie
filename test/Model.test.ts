@@ -39,6 +39,19 @@ describe("Model", function () {
             return db.execute(`SELECT "${Example.tableName}"."ROWID" FROM "${Example.tableName}" FETCH NEXT 0 ROWS ONLY`);
         });
 
+        it("can drop a synced table", async function () {
+            this.timeout(5000);
+            await Example.drop(true);
+            try {
+                await db.execute(`SELECT "${Example.tableName}"."ROWID" FROM "${Example.tableName}" FETCH NEXT 0 ROWS ONLY`);
+            }
+            catch (error: any) {
+                assert.strictEqual(error.errorNum, 942);
+                return;
+            }
+            throw new Error("SELECT dropped table did not error");
+        });
+
         describe("sync between tests", function () {
             beforeEach(async function () {
                 return Example.sync(true);
