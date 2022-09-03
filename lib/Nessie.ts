@@ -1,17 +1,28 @@
-import { BindParameters, createPool, initOracleClient, Pool } from "oracledb"
+import {
+    BindParameters,
+    createPool,
+    initOracleClient,
+    Pool
+} from "oracledb"
 import Model from "./Model";
+import {
+    DefineModelOptions,
+    InitializedModels,
+    ModelAttributes,
+    NessieConfiguration
+} from "./utils/typedefs";
 
 export default class Nessie {
     private static initialized = false;
 
     private _pool: Pool | null;
-    readonly models: any;
+    readonly models: InitializedModels;
 
     get pool() {
         return this._pool;
     }
 
-    constructor(protected configuration: any) {
+    constructor(protected configuration: NessieConfiguration) {
         this._pool = null;
         this.models = {};
         if (this.configuration.libDir && !Nessie.initialized) {
@@ -24,8 +35,8 @@ export default class Nessie {
         newModels.forEach(model => this.models[model.name] = model);
     }
 
-    define(name: string, attributes: any, options: any) {
-        const NewModel = Object.defineProperty(class extends Model { }, "name", { value: name });
+    define(name: string, attributes: ModelAttributes, options: DefineModelOptions) {
+        const NewModel: typeof Model = Object.defineProperty(class extends Model { }, "name", { value: name });
         NewModel.init(attributes, {
             ...options,
             nessie: this
@@ -87,7 +98,7 @@ export default class Nessie {
     async sync(force = false) {
         const sortedModels = Object
             .values(this.models)
-            .sort((a: any, b: any) => a.parentTableCount - b.parentTableCount) as Array<typeof Model>;
+            .sort((a, b) => a.parentTableCount - b.parentTableCount);
         for (const model of sortedModels) {
             await model.sync(force);
         }
