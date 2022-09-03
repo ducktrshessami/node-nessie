@@ -1,5 +1,25 @@
 import { BindParameters, Connection, InitialiseOptions, Pool, PoolAttributes, Result, Results } from "oracledb";
 
+export enum DataTypes {
+    STRING = "VARCHAR(255)",
+    NUMBER = "NUMBER"
+}
+
+export enum Pseudocolumns {
+    COLUMN_VALUE = "COLUMN_VALUE",
+    OBJECT_ID = "OBJECT_ID",
+    OBJECT_VALUE = "OBJECT_VALUE",
+    ORA_ROWSCN = "ORA_ROWSCN",
+    ROWID = "ROWID",
+    ROWNUM = "ROWNUM",
+    XMLDATA = "XMLDATA",
+}
+
+export enum OnDeleteBehavior {
+    CASCADE = "CASCADE",
+    SET_NULL = "SET NULL"
+}
+
 type NessieInitOptions = {
     verbose?: boolean
 }
@@ -10,6 +30,17 @@ interface InitializedModels {
     [key: string]: typeof Model;
 }
 
+type AttributeData = {
+    type: DataTypes,
+    primaryKey?: boolean,
+    allowNull?: boolean,
+    defaultValue?: any
+}
+
+interface ModelAttributes {
+    [attribute: string]: AttributeData | DataTypes;
+}
+
 export class Nessie {
     protected configuration: NessieConfiguration;
     readonly models: InitializedModels;
@@ -18,7 +49,7 @@ export class Nessie {
     constructor(configuration: NessieConfiguration);
 
     addModels(...newModels: Array<typeof Model>): void;
-    define(name: string, attributes: any, options: any): typeof Model;
+    define(name: string, attributes: ModelAttributes, options: any): typeof Model;
     initPool(): Promise<boolean>;
     connect(): Promise<Connection>;
     execute(sql: string, bindParams?: BindParameters, commit?: boolean): Promise<Result<any>>;
@@ -38,7 +69,7 @@ export class Model {
     readonly rowId: string;
     dataValues: any;
 
-    static init(attributes: any, options: any): void;
+    static init(attributes: ModelAttributes, options: any): void;
     static hasMany(other: typeof Model, options?: any): void;
     static belongsTo(other: typeof Model, options?: any): void;
     static sync(force?: boolean): Promise<void>;
@@ -54,24 +85,4 @@ export class Model {
 
     update(values: any, options?: any): Promise<this>;
     destroy(options?: any): Promise<void>;
-}
-
-export enum DataTypes {
-    STRING = "VARCHAR(255)",
-    NUMBER = "NUMBER"
-}
-
-export enum Pseudocolumns {
-    COLUMN_VALUE = "COLUMN_VALUE",
-    OBJECT_ID = "OBJECT_ID",
-    OBJECT_VALUE = "OBJECT_VALUE",
-    ORA_ROWSCN = "ORA_ROWSCN",
-    ROWID = "ROWID",
-    ROWNUM = "ROWNUM",
-    XMLDATA = "XMLDATA",
-}
-
-export enum OnDeleteBehavior {
-    CASCADE = "CASCADE",
-    SET_NULL = "SET NULL"
 }
