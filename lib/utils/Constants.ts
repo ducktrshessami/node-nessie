@@ -17,3 +17,8 @@ export enum OnDeleteBehavior {
     CASCADE = "CASCADE",
     SET_NULL = "SET NULL"
 }
+
+export enum Operators {
+    lt = "<",
+    gt = ">"
+}

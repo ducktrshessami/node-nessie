@@ -93,7 +93,7 @@ export default class Model {
 
     static hasMany(other: typeof Model, options: any = {}) {
         this.initCheck();
-        const association = options.foreignKey ?? this.parseForeignKey(this);
+        const association = (options.foreignKey && options.sourceKey) ? options : this.parseForeignKey(this);
         const upperDelete = options.onDelete?.toUpperCase();
         association.onDelete = Object.values(OnDeleteBehavior).includes(upperDelete) ? upperDelete : OnDeleteBehavior.SET_NULL;
         association.type = this._attributes[association.sourceKey].type;
@@ -103,7 +103,7 @@ export default class Model {
 
     static belongsTo(other: typeof Model, options: any = {}) {
         this.initCheck();
-        const association = options.foreignKey ?? this.parseForeignKey(other);
+        const association = (options.foreignKey && options.sourceKey) ? options : this.parseForeignKey(other);
         const upperDelete = options.onDelete?.toUpperCase();
         association.onDelete = Object.values(OnDeleteBehavior).includes(upperDelete) ? upperDelete : OnDeleteBehavior.SET_NULL;
         association.type = other._attributes[association.sourceKey].type;
