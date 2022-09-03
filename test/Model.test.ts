@@ -171,6 +171,7 @@ describe("Model", function () {
     });
 
     after(async function () {
+        await db.drop();
         return db.close();
     });
 });
