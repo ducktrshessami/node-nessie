@@ -22,7 +22,7 @@ export enum OnDeleteBehavior {
 
 type NessieInitOptions = {
     verbose?: boolean
-}
+};
 
 type NessieConfiguration = NessieInitOptions & PoolAttributes & InitialiseOptions;
 
@@ -35,7 +35,7 @@ type AttributeData = {
     primaryKey?: boolean,
     allowNull?: boolean,
     defaultValue?: any
-}
+};
 
 interface ModelAttributes {
     [attribute: string]: AttributeData | DataTypes;
@@ -43,7 +43,7 @@ interface ModelAttributes {
 
 type DefineModelOptions = {
     tableName?: string;
-}
+};
 
 type ModelInitOptions = DefineModelOptions & { nessie: Nessie };
 
