@@ -41,6 +41,12 @@ interface ModelAttributes {
     [attribute: string]: AttributeData | DataTypes;
 }
 
+type DefineModelOptions = {
+    tableName?: string;
+}
+
+type ModelInitOptions = DefineModelOptions & { nessie: Nessie };
+
 export class Nessie {
     protected configuration: NessieConfiguration;
     readonly models: InitializedModels;
@@ -49,7 +55,7 @@ export class Nessie {
     constructor(configuration: NessieConfiguration);
 
     addModels(...newModels: Array<typeof Model>): void;
-    define(name: string, attributes: ModelAttributes, options: any): typeof Model;
+    define(name: string, attributes: ModelAttributes, options: DefineModelOptions): typeof Model;
     initPool(): Promise<boolean>;
     connect(): Promise<Connection>;
     execute(sql: string, bindParams?: BindParameters, commit?: boolean): Promise<Result<any>>;
@@ -69,7 +75,7 @@ export class Model {
     readonly rowId: string;
     dataValues: any;
 
-    static init(attributes: ModelAttributes, options: any): void;
+    static init(attributes: ModelAttributes, options: ModelInitOptions): void;
     static hasMany(other: typeof Model, options?: any): void;
     static belongsTo(other: typeof Model, options?: any): void;
     static sync(force?: boolean): Promise<void>;
