@@ -20,6 +20,11 @@ export enum OnDeleteBehavior {
     SET_NULL = "SET NULL"
 }
 
+export enum Operators {
+    lt = "<",
+    gt = ">"
+}
+
 type NessieInitOptions = {
     verbose?: boolean
 };
