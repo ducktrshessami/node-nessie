@@ -50,7 +50,14 @@ type DefineModelOptions = {
     tableName?: string;
 };
 
-type ModelInitOptions = DefineModelOptions & { nessie: Nessie };
+type ExecuteOptions = {
+    connection?: Connection,
+    commit?: boolean
+};
+
+type ExecuteOneOptions = ExecuteOptions & { bindParams?: BindParameters };
+
+type ExecuteManyOptions = ExecuteOptions & { bindParams: Array<BindParameters> };;
 
 export class Nessie {
     protected configuration: NessieConfiguration;
@@ -63,12 +70,14 @@ export class Nessie {
     define(name: string, attributes: ModelAttributes, options: DefineModelOptions): typeof Model;
     initPool(): Promise<boolean>;
     connect(): Promise<Connection>;
-    execute(sql: string, bindParams?: BindParameters, commit?: boolean): Promise<Result<any>>;
-    executeMany(sql: string, bindParams: Array<BindParameters>, commit?: boolean): Promise<Results<any>>;
+    execute(sql: string, options?: ExecuteOneOptions): Promise<Result<any>>;
+    executeMany(sql: string, options: ExecuteManyOptions): Promise<Results<any>>;
     drop(): Promise<void>;
     sync(force?: boolean): Promise<void>;
     close(drainTime?: number): Promise<void>;
 }
+
+type ModelInitOptions = DefineModelOptions & { nessie: Nessie };
 
 type AssociationOptions = {
     foreignKey?: string,
