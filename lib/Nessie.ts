@@ -7,6 +7,8 @@ import {
 import Model from "./Model";
 import {
     DefineModelOptions,
+    ExecuteManyOptions,
+    ExecuteOneOptions,
     InitializedModels,
     ModelAttributes,
     NessieConfiguration
@@ -57,14 +59,14 @@ export default class Nessie {
         return this._pool!.getConnection();
     }
 
-    async execute(sql: string, bindParams: BindParameters = [], commit = false) {
-        const connection = await this.connect();
+    async execute(sql: string, options: ExecuteOneOptions = {}) {
+        const connection = options.connection ?? await this.connect();
         try {
             if (this.configuration.verbose) {
                 console.info(`Executing: ${sql}`);
             }
-            const result = await connection.execute(sql, bindParams);
-            if (commit) {
+            const result = await connection.execute(sql, options.bindParams ?? []);
+            if (options.commit) {
                 await connection.commit();
             }
             await connection.close();
@@ -76,14 +78,14 @@ export default class Nessie {
         }
     }
 
-    async executeMany(sql: string, bindParams: Array<BindParameters>, commit = false) {
-        const connection = await this.connect();
+    async executeMany(sql: string, options: ExecuteManyOptions) {
+        const connection = options.connection ?? await this.connect();
         try {
             if (this.configuration.verbose) {
                 console.info(`Executing Many: ${sql}`);
             }
-            const result = await connection.executeMany(sql, bindParams);
-            if (commit) {
+            const result = await connection.executeMany(sql, options.bindParams);
+            if (options.commit) {
                 await connection.commit();
             }
             await connection.close();

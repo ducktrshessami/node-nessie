@@ -1,4 +1,4 @@
-import { InitialiseOptions, PoolAttributes } from "oracledb";
+import { BindParameters, Connection, InitialiseOptions, PoolAttributes } from "oracledb";
 import Model from "../Model";
 import Nessie from "../Nessie";
 import { DataTypes, OnDeleteBehavior } from "./Constants";
@@ -27,6 +27,15 @@ export interface ModelAttributes {
 export type DefineModelOptions = {
     tableName?: string;
 };
+
+export type ExecuteOptions = {
+    connection?: Connection,
+    commit?: boolean
+};
+
+export type ExecuteOneOptions = ExecuteOptions & { bindParams?: BindParameters };
+
+export type ExecuteManyOptions = ExecuteOptions & { bindParams: Array<BindParameters> };
 
 export interface FormattedModelAttributes {
     [attribute: string]: AttributeData;
