@@ -56,7 +56,7 @@ export default class Model {
         return [];
     }
 
-    static get foreignKeys(): Array<string> {
+    static get foreignKeys() {
         if (this._associations) {
             return Object
                 .values(this._associations)
@@ -66,7 +66,7 @@ export default class Model {
         return [];
     }
 
-    static get parentTableCount(): number {
+    static get parentTableCount() {
         if (this._associations) {
             const parents = Object
                 .values(this._associations)
@@ -155,7 +155,7 @@ export default class Model {
         return sql.join(" ");
     }
 
-    private static buildAssociationSql(): Array<string> {
+    private static buildAssociationSql() {
         return Object
             .keys(this._associations!)
             .filter(association => this._associations![association].source)
