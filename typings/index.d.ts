@@ -89,13 +89,13 @@ interface ModelQueryAttributeData {
 
 type ModelQueryWhereOptions = { where: ModelQueryAttributeData };
 
-type FindOneModelOptions = ModelQueryWhereOptions & { attributes?: Array<string> };
+type ModelQueryAttributesOptions = { attributes?: Array<string> };
+
+type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryAttributeData };
 
 type FindAllModelOptions = FindOneModelOptions & { limit?: number };
 
-type FindOrCreateModelOptions = FindOneModelOptions & {
-    defaults?: ModelQueryAttributeData
-};
+type FindOrCreateModelOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions & { defaults?: ModelQueryAttributeData };
 
 export class Model {
     static readonly tableName: string;
