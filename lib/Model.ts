@@ -208,7 +208,10 @@ export default class Model {
     static async create(values: ModelQueryAttributeData, options: ModelCreateOptions = {}) {
         this.initCheck();
         const [attributeSql, valuesSql, bindParams] = this.parseValueSql(values);
-        const { lastRowid } = await this._nessie!.execute(`INSERT INTO "${this.tableName}" (${attributeSql}) VALUES (${valuesSql})`, bindParams, true);
+        const { lastRowid } = await this._nessie!.execute(`INSERT INTO "${this.tableName}" (${attributeSql}) VALUES (${valuesSql})`, {
+            bindParams,
+            commit: true
+        });
         if (options.select ?? true) {
             return this.findByRowId(lastRowid!);
         }
@@ -238,7 +241,10 @@ export default class Model {
     static async bulkCreate(values: Array<ModelQueryAttributeData>, options: ModelBulkCreateOptions = {}) {
         this.initCheck();
         const [sql, bindParams] = this.buildBulkQuery(values, options.ignoreDuplicates);
-        const { rowsAffected } = await this._nessie!.executeMany(sql, bindParams, true);
+        const { rowsAffected } = await this._nessie!.executeMany(sql, {
+            bindParams,
+            commit: true
+        });
         return rowsAffected ?? 0;
     }
 
@@ -278,7 +284,7 @@ export default class Model {
         if (typeof options.limit === "number") {
             sqlData.push(`FETCH NEXT ${Math.floor(options.limit)} ROWS ONLY`);
         }
-        const results: Result<any> = await this._nessie!.execute(sqlData.join(" "), bindParams);
+        const results: Result<any> = await this._nessie!.execute(sqlData.join(" "), { bindParams });
         return results.rows!.map(row => new this(results.metaData!, row));
     }
 
@@ -333,7 +339,10 @@ export default class Model {
         this.initCheck();
         const [valuesSql, bindParams] = this.parseEql(values);
         const [where] = this.parseEql(options.where, bindParams);
-        const { rowsAffected } = await this._nessie!.execute(`UPDATE "${this.tableName}" SET ${valuesSql} WHERE ${where}`, bindParams, true);
+        const { rowsAffected } = await this._nessie!.execute(`UPDATE "${this.tableName}" SET ${valuesSql} WHERE ${where}`, {
+            bindParams,
+            commit: true
+        });
         return rowsAffected ?? 0;
     }
 
@@ -353,7 +362,10 @@ export default class Model {
     static async destroy(options: ModelQueryWhereOptions) {
         this.initCheck();
         const [where, bindParams] = this.parseEql(options.where);
-        const { rowsAffected } = await this._nessie!.execute(`DELETE FROM "${this.tableName}" WHERE ${where}`, bindParams, true);
+        const { rowsAffected } = await this._nessie!.execute(`DELETE FROM "${this.tableName}" WHERE ${where}`, {
+            bindParams,
+            commit: true
+        });
         return rowsAffected ?? 0;
     }
 
