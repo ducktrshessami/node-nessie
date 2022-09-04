@@ -65,6 +65,7 @@ export class Nessie {
     connect(): Promise<Connection>;
     execute(sql: string, bindParams?: BindParameters, commit?: boolean): Promise<Result<any>>;
     executeMany(sql: string, bindParams: Array<BindParameters>, commit?: boolean): Promise<Results<any>>;
+    drop(): Promise<void>;
     sync(force?: boolean): Promise<void>;
     close(drainTime?: number): Promise<void>;
 }
