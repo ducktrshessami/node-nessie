@@ -33,6 +33,19 @@ describe("Nessie", function () {
         await db.execute(`SELECT "${Child.tableName}"."ROWID" FROM "${Child.tableName}" FETCH NEXT 0 ROWS ONLY`);
     });
 
+    it("can drop all models", async function () {
+        this.timeout(5000);
+        await db.drop();
+        const [exampleResult, childResult] = (await Promise.allSettled([
+            db.execute(`SELECT "${Example.tableName}"."ROWID" FROM "${Example.tableName}" FETCH NEXT 0 ROWS ONLY`),
+            db.execute(`SELECT "${Child.tableName}"."ROWID" FROM "${Child.tableName}" FETCH NEXT 0 ROWS ONLY`)
+        ])) as Array<PromiseRejectedResult>;
+        assert.strictEqual(exampleResult.status, "rejected");
+        assert.strictEqual(exampleResult.reason.errorNum, 942);
+        assert.strictEqual(childResult.status, "rejected");
+        assert.strictEqual(childResult.reason.errorNum, 942);
+    });
+
     it("close clears pool", async function () {
         assert.notStrictEqual(db.pool, null);
         await db.close();

@@ -65,6 +65,7 @@ export class Nessie {
     connect(): Promise<Connection>;
     execute(sql: string, bindParams?: BindParameters, commit?: boolean): Promise<Result<any>>;
     executeMany(sql: string, bindParams: Array<BindParameters>, commit?: boolean): Promise<Results<any>>;
+    drop(): Promise<void>;
     sync(force?: boolean): Promise<void>;
     close(drainTime?: number): Promise<void>;
 }
@@ -111,6 +112,7 @@ export class Model {
     static init(attributes: ModelAttributes, options: ModelInitOptions): void;
     static hasMany(other: typeof Model, options?: AssociationOptions): void;
     static belongsTo(other: typeof Model, options?: AssociationOptions): void;
+    static drop(cascade?: boolean): Promise<void>;
     static sync(force?: boolean): Promise<void>;
     static create(values: ModelQueryAttributeData, options: { select: false }): Promise<void>;
     static create(values: ModelQueryAttributeData, options?: ModelCreateOptions): Promise<Model>;
