@@ -34,9 +34,9 @@ describe("Model", function () {
 
         it("syncs with db properly", async function () {
             this.timeout(5000);
-            await Example.sync(true);
-            await Example.sync();
-            return db.execute(`SELECT "${Example.tableName}"."ROWID" FROM "${Example.tableName}" FETCH NEXT 0 ROWS ONLY`);
+            await db.models.Example.sync(true);
+            await db.models.Example.sync();
+            return db.execute(`SELECT "${db.models.Example.tableName}"."ROWID" FROM "${db.models.Example.tableName}" FETCH NEXT 0 ROWS ONLY`);
         });
 
         it("can drop a synced table", async function () {
@@ -54,16 +54,16 @@ describe("Model", function () {
 
         describe("sync between tests", function () {
             beforeEach(async function () {
-                return Example.sync(true);
+                return db.models.Example.sync(true);
             });
 
             it("create returns a model instance by default", async function () {
                 this.timeout(5000);
-                const instance = await Example.create({
+                const instance = await db.models.Example.create({
                     id: 1,
                     foo: "bar"
                 });
-                assert.strictEqual(instance!.constructor, Example);
+                assert.strictEqual(instance!.constructor, db.models.Example);
             });
 
             it("bulkCreate functions as intended", async function () {
@@ -78,8 +78,8 @@ describe("Model", function () {
                         foo: "bar"
                     }
                 ];
-                const initial = await Example.bulkCreate(values);
-                const ignored = await Example.bulkCreate(values, { ignoreDuplicates: true });
+                const initial = await db.models.Example.bulkCreate(values);
+                const ignored = await db.models.Example.bulkCreate(values, { ignoreDuplicates: true });
                 assert.strictEqual(initial, values.length);
                 assert.strictEqual(ignored, 0);
             });
@@ -88,8 +88,8 @@ describe("Model", function () {
                 this.timeout(5000);
                 const id = 1;
                 const foo = "foobar";
-                const created = await Example.create({ id, foo });
-                const read = await Example.findByRowId(created!.rowId);
+                const created = await db.models.Example.create({ id, foo });
+                const read = await db.models.Example.findByRowId(created!.rowId);
                 assert.strictEqual(read!.dataValues.id, id);
                 assert.strictEqual(read!.dataValues.foo, foo);
             });
@@ -98,12 +98,12 @@ describe("Model", function () {
                 this.timeout(5000);
                 const id = 1;
                 const foo = "foo";
-                const [initial, initialCreated] = await Example.findOrCreate({
+                const [initial, initialCreated] = await db.models.Example.findOrCreate({
                     where: { id },
                     defaults: { foo }
                 });
                 assert.strictEqual(initialCreated, true);
-                const [found, foundCreated] = await Example.findOrCreate({
+                const [found, foundCreated] = await db.models.Example.findOrCreate({
                     where: { id },
                     defaults: { foo: "bar" }
                 });
@@ -115,11 +115,11 @@ describe("Model", function () {
             it("update functions as intended", async function () {
                 this.timeout(5000);
                 const id = 1;
-                await Example.create({
+                await db.models.Example.create({
                     id,
                     foo: "foo"
                 }, { select: false });
-                const updated = await Example.update({ foo: "bar" }, {
+                const updated = await db.models.Example.update({ foo: "bar" }, {
                     where: { id }
                 });
                 assert.strictEqual(updated, 1);
@@ -128,11 +128,11 @@ describe("Model", function () {
             it("destroy functions as intended", async function () {
                 this.timeout(5000);
                 const id = 1;
-                await Example.create({
+                await db.models.Example.create({
                     id,
                     foo: "foo"
                 }, { select: false });
-                const destroyed = await Example.destroy({
+                const destroyed = await db.models.Example.destroy({
                     where: { id }
                 });
                 assert.strictEqual(destroyed, 1);
@@ -144,8 +144,8 @@ describe("Model", function () {
         let instance: Model;
 
         before(async function () {
-            await Example.sync(true);
-            instance = (await Example.create({
+            await db.models.Example.sync(true);
+            instance = (await db.models.Example.create({
                 id: 1,
                 foo: "foobar"
             }))!;

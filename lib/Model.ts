@@ -4,15 +4,30 @@ import assert from "node:assert";
 import { ModelInitError, ModelSyncError } from "./errors/ModelError";
 import { DataTypes, OnDeleteBehavior, Pseudocolumns } from "./utils/Constants";
 import { BindParameters, Metadata, Result } from "oracledb";
+import {
+    AssociationOptions,
+    AttributeData,
+    FindAllModelOptions,
+    FindOneModelOptions,
+    FindOrCreateModelOptions,
+    FormattedModelAssociations,
+    FormattedModelAttributes,
+    ModelAttributes,
+    ModelBulkCreateOptions,
+    ModelCreateOptions,
+    ModelInitOptions,
+    ModelQueryAttributeData,
+    ModelQueryWhereOptions
+} from "./utils/typedefs";
 
 export default class Model {
     private static _nessie?: Nessie;
     private static _tableName: string | null;
-    private static _attributes: any = null;
-    private static _associations: any = null;
+    private static _attributes: FormattedModelAttributes | null = null;
+    private static _associations: FormattedModelAssociations | null = null;
 
     private _destroyed: boolean;
-    dataValues: any;
+    dataValues: ModelQueryAttributeData;
 
     static get tableName() {
         return this._tableName ?? pluralize(upperCaseName(this.name));
@@ -22,26 +37,26 @@ export default class Model {
         if (this._attributes) {
             return Object
                 .keys(this._attributes)
-                .filter(key => this._attributes[key].primaryKey);
+                .filter(key => this._attributes![key].primaryKey);
         }
         return [];
     }
 
-    static get foreignKeys(): Array<string> {
+    static get foreignKeys() {
         if (this._associations) {
             return Object
                 .values(this._associations)
-                .filter((association: any) => association.source)
-                .map((association: any) => association.foreignKey);
+                .filter(association => association.source)
+                .map(association => association.foreignKey);
         }
         return [];
     }
 
-    static get parentTableCount(): number {
+    static get parentTableCount() {
         if (this._associations) {
             const parents = Object
                 .values(this._associations)
-                .filter((assocation: any) => assocation.source);
+                .filter(assocation => assocation.source);
             return parents.length;
         }
         return 0;
@@ -65,7 +80,7 @@ export default class Model {
         metaData.forEach((attributeMeta, i) => this.dataValues[attributeMeta.name] = row[i]);
     }
 
-    static init(attributes: any, options: any) {
+    static init(attributes: ModelAttributes, options: ModelInitOptions) {
         this._nessie = options.nessie;
         this._tableName = options.tableName ?? null;
         this._attributes = {};
@@ -73,7 +88,7 @@ export default class Model {
         Object
             .keys(attributes)
             .sort()
-            .forEach(key => this._attributes[key] = typeof attributes[key] === "object" ? attributes[key] : { type: attributes[key] });
+            .forEach(key => this._attributes![key] = (typeof attributes[key] === "object" ? attributes[key] : { type: attributes[key] }) as AttributeData);
         this._nessie!.addModels(this);
     }
 
@@ -91,27 +106,25 @@ export default class Model {
         };
     }
 
-    static hasMany(other: typeof Model, options: any = {}) {
+    static hasMany(other: typeof Model, options: AssociationOptions = {}) {
         this.initCheck();
-        const association = options.foreignKey ?? this.parseForeignKey(this);
-        const upperDelete = options.onDelete?.toUpperCase();
-        association.onDelete = Object.values(OnDeleteBehavior).includes(upperDelete) ? upperDelete : OnDeleteBehavior.SET_NULL;
-        association.type = this._attributes[association.sourceKey].type;
+        const association: any = (options.foreignKey && options.sourceKey) ? options : this.parseForeignKey(this);
+        association.onDelete = options.onDelete ?? OnDeleteBehavior.SET_NULL;
+        association.type = this._attributes![association.sourceKey].type;
         association.source = false;
-        this._associations[other.tableName] = association;
+        this._associations![other.tableName] = association;
     }
 
-    static belongsTo(other: typeof Model, options: any = {}) {
+    static belongsTo(other: typeof Model, options: AssociationOptions = {}) {
         this.initCheck();
-        const association = options.foreignKey ?? this.parseForeignKey(other);
-        const upperDelete = options.onDelete?.toUpperCase();
-        association.onDelete = Object.values(OnDeleteBehavior).includes(upperDelete) ? upperDelete : OnDeleteBehavior.SET_NULL;
-        association.type = other._attributes[association.sourceKey].type;
+        const association: any = (options.foreignKey && options.sourceKey) ? options : this.parseForeignKey(other);
+        association.onDelete = options.onDelete ?? OnDeleteBehavior.SET_NULL;
+        association.type = other._attributes![association.sourceKey].type;
         association.source = true;
-        this._associations[other.tableName] = association;
+        this._associations![other.tableName] = association;
     }
 
-    private static buildColumnSql(key: string, attributeData: any) {
+    private static buildColumnSql(key: string, attributeData: AttributeData) {
         assert(
             Object
                 .values(DataTypes)
@@ -128,14 +141,14 @@ export default class Model {
         return sql.join(" ");
     }
 
-    private static buildAssociationSql(): Array<string> {
+    private static buildAssociationSql() {
         return Object
-            .keys(this._associations)
-            .filter(association => this._associations[association].source)
-            .map(otherTableName => `"${this._associations[otherTableName].foreignKey}" ${this._associations[otherTableName].type} REFERENCES "${otherTableName}" ("${this._associations[otherTableName].sourceKey}") ON DELETE ${this._associations[otherTableName].onDelete}`);
+            .keys(this._associations!)
+            .filter(association => this._associations![association].source)
+            .map(otherTableName => `"${this._associations![otherTableName].foreignKey}" ${this._associations![otherTableName].type} REFERENCES "${otherTableName}" ("${this._associations![otherTableName].sourceKey}") ON DELETE ${this._associations![otherTableName].onDelete}`);
     }
 
-    private static buildTableSql(attributesData: any) {
+    private static buildTableSql(attributesData: FormattedModelAttributes) {
         const sql = Object
             .keys(attributesData)
             .map(key => this.buildColumnSql(key, attributesData[key]));
@@ -163,23 +176,23 @@ export default class Model {
         if (force) {
             await this.drop(true);
         }
-        const columnSql = this.buildTableSql(this._attributes);
+        const columnSql = this.buildTableSql(this._attributes!);
         await this._nessie!.execute(`BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "${this.tableName}" (${columnSql})'; EXCEPTION WHEN OTHERS THEN IF sqlcode <> -955 THEN raise; END IF; END;`);
     }
 
-    private static formatAttributeKeys(attributes: any) {
+    private static formatAttributeKeys(attributes: ModelQueryAttributeData) {
         return Object
             .keys(attributes)
             .sort()
             .reduce((formatted: any, key) => {
-                if (key in this._attributes || key in Pseudocolumns || this.foreignKeys.includes(key)) {
+                if (key in this._attributes! || key in Pseudocolumns || this.foreignKeys.includes(key)) {
                     formatted[key] = attributes[key];
                 }
                 return formatted;
             }, {});
     }
 
-    private static parseValueSql(values: any): [string, string, BindParameters] {
+    private static parseValueSql(values: ModelQueryAttributeData): [string, string, BindParameters] {
         const attributes = this.formatAttributeKeys(values);
         const attributeKeys = Object.keys(attributes);
         const attributeSql = attributeKeys
@@ -192,7 +205,7 @@ export default class Model {
         return [attributeSql, bindParamSql, bindParams];
     }
 
-    static async create(values: any, options: any = {}) {
+    static async create(values: ModelQueryAttributeData, options: ModelCreateOptions = {}) {
         this.initCheck();
         const [attributeSql, valuesSql, bindParams] = this.parseValueSql(values);
         const { lastRowid } = await this._nessie!.execute(`INSERT INTO "${this.tableName}" (${attributeSql}) VALUES (${valuesSql})`, bindParams, true);
@@ -201,7 +214,7 @@ export default class Model {
         }
     }
 
-    private static buildBulkQuery(values: Array<any>, ignoreDuplicates: boolean): [string, Array<BindParameters>] {
+    private static buildBulkQuery(values: Array<ModelQueryAttributeData>, ignoreDuplicates: boolean = false): [string, Array<BindParameters>] {
         const structure = values.reduce((struct: any, value) => {
             const formatted = this.formatAttributeKeys(value);
             Object
@@ -222,17 +235,17 @@ export default class Model {
         return [sql, bindParamList];
     }
 
-    static async bulkCreate(values: Array<any>, options: any = {}) {
+    static async bulkCreate(values: Array<ModelQueryAttributeData>, options: ModelBulkCreateOptions = {}) {
         this.initCheck();
         const [sql, bindParams] = this.buildBulkQuery(values, options.ignoreDuplicates);
         const { rowsAffected } = await this._nessie!.executeMany(sql, bindParams, true);
         return rowsAffected ?? 0;
     }
 
-    private static parseSelectAttributeSql(attributes: Array<string> = Object.keys(this._attributes)) {
+    private static parseSelectAttributeSql(attributes: Array<string> = Object.keys(this._attributes!)) {
         return attributes
             .reduce((data: Array<string>, attribute) => {
-                if (attribute in this._attributes || attribute in Pseudocolumns || this.foreignKeys.includes(attribute)) {
+                if (attribute in this._attributes! || attribute in Pseudocolumns || this.foreignKeys.includes(attribute)) {
                     const sql = `"${this.tableName}"."${attribute}"`;
                     data.push(sql);
                 }
@@ -241,7 +254,7 @@ export default class Model {
             .join(", ");
     }
 
-    private static parseEql(values: any, bindParams: Array<any> = []): [string, Array<any>] {
+    private static parseEql(values: ModelQueryAttributeData, bindParams: Array<any> = []): [string, Array<any>] {
         const attributes = this.formatAttributeKeys(values);
         const setSql = Object
             .keys(attributes)
@@ -251,7 +264,7 @@ export default class Model {
         return [setSql, bindParams];
     }
 
-    static async findAll(options: any = {}) {
+    static async findAll(options: FindAllModelOptions = {}) {
         this.initCheck();
         const bindParams: Array<any> = [];
         const attributeSql = this.parseSelectAttributeSql(options.attributes);
@@ -269,7 +282,7 @@ export default class Model {
         return results.rows!.map(row => new this(results.metaData!, row));
     }
 
-    static async findOne(options: any = {}) {
+    static async findOne(options: FindOneModelOptions = {}) {
         const [first] = await this.findAll({
             ...options,
             limit: 1
@@ -283,7 +296,7 @@ export default class Model {
         });
     }
 
-    static async findOrCreate(options: any): Promise<[Model, boolean]> {
+    static async findOrCreate(options: FindOrCreateModelOptions): Promise<[Model, boolean]> {
         let created = false;
         let model = await this.findOne(options);
         if (!model) {
@@ -316,7 +329,7 @@ export default class Model {
         return [model, created];
     }
 
-    static async update(values: any, options: any) {
+    static async update(values: ModelQueryAttributeData, options: ModelQueryWhereOptions) {
         this.initCheck();
         const [valuesSql, bindParams] = this.parseEql(values);
         const [where] = this.parseEql(options.where, bindParams);
@@ -329,26 +342,24 @@ export default class Model {
         this.dataValues = dataValues;
     }
 
-    async update(values: any, options: any = {}) {
+    async update(values: ModelQueryAttributeData) {
         await this.model.update(values, {
-            ...options,
             where: { ROWID: this.rowId }
         });
         await this.patch();
         return this;
     }
 
-    static async destroy(options: any) {
+    static async destroy(options: ModelQueryWhereOptions) {
         this.initCheck();
         const [where, bindParams] = this.parseEql(options.where);
         const { rowsAffected } = await this._nessie!.execute(`DELETE FROM "${this.tableName}" WHERE ${where}`, bindParams, true);
         return rowsAffected ?? 0;
     }
 
-    async destroy(options: any = {}) {
+    async destroy() {
         if (!this._destroyed) {
             await this.model.destroy({
-                ...options,
                 where: { ROWID: this.rowId }
             });
             this._destroyed = true;
