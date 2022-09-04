@@ -10,6 +10,8 @@ import {
     FindAllModelOptions,
     FindOneModelOptions,
     FindOrCreateModelOptions,
+    FormattedModelAssociations,
+    FormattedModelAttributes,
     ModelAttributes,
     ModelBulkCreateOptions,
     ModelCreateOptions,
@@ -17,22 +19,6 @@ import {
     ModelQueryAttributeData,
     ModelQueryWhereOptions
 } from "./utils/typedefs";
-
-interface FormattedModelAttributes {
-    [attribute: string]: AttributeData;
-}
-
-type Association = {
-    foreignKey: string,
-    sourceKey: string,
-    type: DataTypes,
-    onDelete: OnDeleteBehavior,
-    source: boolean
-}
-
-interface FormattedModelAssociations {
-    [other: string]: Association;
-}
 
 export default class Model {
     private static _nessie?: Nessie;

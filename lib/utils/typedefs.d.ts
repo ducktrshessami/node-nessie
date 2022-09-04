@@ -28,6 +28,22 @@ export type DefineModelOptions = {
     tableName?: string;
 };
 
+export interface FormattedModelAttributes {
+    [attribute: string]: AttributeData;
+}
+
+export type Association = {
+    foreignKey: string,
+    sourceKey: string,
+    type: DataTypes,
+    onDelete: OnDeleteBehavior,
+    source: boolean
+}
+
+export interface FormattedModelAssociations {
+    [other: string]: Association;
+}
+
 export type ModelInitOptions = DefineModelOptions & { nessie: Nessie };
 
 export type AssociationOptions = {
