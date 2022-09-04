@@ -50,10 +50,10 @@ export interface ModelQueryAttributeData {
 
 export type ModelQueryWhereOptions = { where: ModelQueryAttributeData };
 
-export type FindOneModelOptions = ModelQueryWhereOptions & { attributes?: Array<string> };
+export type ModelQueryAttributesOptions = { attributes?: Array<string> };
+
+export type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryAttributeData };
 
 export type FindAllModelOptions = FindOneModelOptions & { limit?: number };
 
-export type FindOrCreateModelOptions = FindOneModelOptions & {
-    defaults?: ModelQueryAttributeData
-};
+export type FindOrCreateModelOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions & { defaults?: ModelQueryAttributeData };
