@@ -95,6 +95,12 @@ export default class Nessie {
         }
     }
 
+    async drop() {
+        for (const model of Object.values(this.models)) {
+            await model.drop(true);
+        }
+    }
+
     async sync(force = false) {
         const sortedModels = Object
             .values(this.models)
