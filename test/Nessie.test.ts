@@ -14,7 +14,8 @@ describe("Nessie", function () {
             libDir: process.env.DB_LIBDIR,
             user: process.env.DB_USER,
             password: process.env.DB_PASSWORD,
-            connectionString: process.env.DB_CONNECTSTRING
+            connectionString: process.env.DB_CONNECTSTRING,
+            poolMax: parseInt(process.env.DB_POOLMAX!) || 4
         });
         [Example, Child] = initModels(db);
     });
