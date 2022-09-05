@@ -1,5 +1,6 @@
 import {
     BindParameters,
+    Connection,
     createPool,
     initOracleClient,
     Pool
@@ -71,11 +72,11 @@ export default class Nessie {
             if (options.commit) {
                 await connection.commit();
             }
-            await connection.close();
+            await cleanupConnection(connection, options.connection);
             return result;
         }
         catch (err) {
-            await connection.close();
+            await cleanupConnection(connection, options.connection);
             throw err;
         }
     }
@@ -90,11 +91,11 @@ export default class Nessie {
             if (options.commit) {
                 await connection.commit();
             }
-            await connection.close();
+            await cleanupConnection(connection, options.connection);
             return result;
         }
         catch (err) {
-            await connection.close();
+            await cleanupConnection(connection, options.connection);
             throw err;
         }
     }
@@ -131,5 +132,11 @@ export default class Nessie {
     async close(drainTime?: number) {
         await (isNaN(drainTime!) ? this._pool?.close() : this._pool?.close(drainTime));
         this._pool = null;
+    }
+}
+
+async function cleanupConnection(connection: Connection, connectionOption?: Connection) {
+    if (!connectionOption) {
+        await connection.close();
     }
 }
