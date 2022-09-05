@@ -50,10 +50,9 @@ type DefineModelOptions = {
     tableName?: string;
 };
 
-type ExecuteOptions = {
-    connection?: Connection,
-    commit?: boolean
-};
+type ConnectionOptions = { connection?: Connection };
+
+type ExecuteOptions = ConnectionOptions & { commit?: boolean };
 
 type ExecuteOneOptions = ExecuteOptions & { bindParams?: BindParameters };
 

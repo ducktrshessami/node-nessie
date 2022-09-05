@@ -28,10 +28,9 @@ export type DefineModelOptions = {
     tableName?: string;
 };
 
-export type ExecuteOptions = {
-    connection?: Connection,
-    commit?: boolean
-};
+export type ConnectionOptions = { connection?: Connection };
+
+export type ExecuteOptions = ConnectionOptions & { commit?: boolean };
 
 export type ExecuteOneOptions = ExecuteOptions & { bindParams?: BindParameters };
 
