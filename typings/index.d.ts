@@ -98,17 +98,25 @@ type ModelBulkCreateOptions = {
     ignoreDuplicates?: boolean
 };
 
-interface ModelQueryAttributeData {
-    [key: string]: ColumnValue;
+interface ModelQueryWhereOperatorData {
+    [key: Operators]: ColumnValue;
 }
 
-type ModelQueryWhereOptions = { where: ModelQueryAttributeData };
+interface ModelQueryWhereData {
+    [key: string]: ColumnValue | ModelQueryWhereOperatorData;
+}
+
+type ModelQueryWhereOptions = { where: ModelQueryWhereData };
 
 type ModelQueryAttributesOptions = { attributes?: Array<string> };
 
-type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryAttributeData };
+type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryWhereData };
 
 type FindAllModelOptions = FindOneModelOptions & { limit?: number };
+
+interface ModelQueryAttributeData {
+    [key: string]: ColumnValue;
+}
 
 type FindOrCreateModelOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions & { defaults?: ModelQueryAttributeData };
 
