@@ -35,14 +35,14 @@ describe("Model", function () {
 
         it("syncs with db properly", async function () {
             this.timeout(5000);
-            await db.models.Example.sync(true);
+            await db.models.Example.sync({ force: true });
             await db.models.Example.sync();
             return db.execute(`SELECT "${db.models.Example.tableName}"."ROWID" FROM "${db.models.Example.tableName}" FETCH NEXT 0 ROWS ONLY`);
         });
 
         it("can drop a synced table", async function () {
             this.timeout(5000);
-            await Example.drop(true);
+            await db.models.Example.drop({ cascade: true });
             try {
                 await db.execute(`SELECT "${Example.tableName}"."ROWID" FROM "${Example.tableName}" FETCH NEXT 0 ROWS ONLY`);
             }
@@ -55,7 +55,7 @@ describe("Model", function () {
 
         describe("sync between tests", function () {
             beforeEach(async function () {
-                return db.models.Example.sync(true);
+                return db.models.Example.sync({ force: true });
             });
 
             it("create returns a model instance by default", async function () {
@@ -145,7 +145,7 @@ describe("Model", function () {
         let instance: Model;
 
         before(async function () {
-            await db.models.Example.sync(true);
+            await db.models.Example.sync({ force: true });
             instance = (await db.models.Example.create({
                 id: 1,
                 foo: "foobar"
