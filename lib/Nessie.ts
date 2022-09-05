@@ -108,9 +108,7 @@ export default class Nessie {
                 cascade: true
             });
         }
-        if (!options.connection) {
-            await connection.close();
-        }
+        await cleanupConnection(connection, options.connection);
     }
 
     async sync(options: SyncOptions = {}) {
@@ -124,9 +122,7 @@ export default class Nessie {
                 force: options.force
             });
         }
-        if (!options.connection) {
-            await connection.close();
-        }
+        await cleanupConnection(connection, options.connection);
     }
 
     async close(drainTime?: number) {
