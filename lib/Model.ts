@@ -269,7 +269,7 @@ export default class Model {
             .join(", ");
     }
 
-    private static parseEql(values: ModelQueryAttributeData, bindParams: Array<any> = []): [string, Array<any>] {
+    private static parseQueryAttributeDataSql(values: ModelQueryAttributeData, bindParams: Array<any> = []): [string, Array<any>] {
         const attributes = this.formatAttributeKeys(values);
         const setSql = Object
             .keys(attributes)
@@ -285,7 +285,7 @@ export default class Model {
         const attributeSql = this.parseSelectAttributeSql(options.attributes);
         let sqlData = [`SELECT ${attributeSql} FROM "${this.tableName}"`];
         if (options.where) {
-            const [where] = this.parseEql(options.where, bindParams);
+            const [where] = this.parseQueryAttributeDataSql(options.where, bindParams);
             if (where) {
                 sqlData.push(`WHERE ${where}`);
             }
@@ -346,8 +346,8 @@ export default class Model {
 
     static async update(values: ModelQueryAttributeData, options: ModelQueryWhereOptions) {
         this.initCheck();
-        const [valuesSql, bindParams] = this.parseEql(values);
-        const [where] = this.parseEql(options.where, bindParams);
+        const [valuesSql, bindParams] = this.parseQueryAttributeDataSql(values);
+        const [where] = this.parseQueryAttributeDataSql(options.where, bindParams);
         const { rowsAffected } = await this._nessie!.execute(`UPDATE "${this.tableName}" SET ${valuesSql} WHERE ${where}`, {
             bindParams,
             commit: true
@@ -370,7 +370,7 @@ export default class Model {
 
     static async destroy(options: ModelQueryWhereOptions) {
         this.initCheck();
-        const [where, bindParams] = this.parseEql(options.where);
+        const [where, bindParams] = this.parseQueryAttributeDataSql(options.where);
         const { rowsAffected } = await this._nessie!.execute(`DELETE FROM "${this.tableName}" WHERE ${where}`, {
             bindParams,
             commit: true
