@@ -18,6 +18,7 @@ import {
     ModelDropOptions,
     ModelInitOptions,
     ModelQueryAttributeData,
+    ModelQueryWhereData,
     ModelQueryWhereOptions,
     SyncOptions
 } from "./utils/typedefs";
@@ -189,7 +190,7 @@ export default class Model {
         }
     }
 
-    private static formatAttributeKeys(attributes: ModelQueryAttributeData) {
+    private static formatAttributeKeys(attributes: ModelQueryWhereData) {
         return Object
             .keys(attributes)
             .sort()
@@ -269,7 +270,7 @@ export default class Model {
             .join(", ");
     }
 
-    private static parseQueryAttributeDataSql(values: ModelQueryAttributeData, bindParams: Array<any> = []): [string, Array<any>] {
+    private static parseQueryAttributeDataSql(values: ModelQueryWhereData, bindParams: Array<any> = []): [string, Array<any>] {
         const attributes = this.formatAttributeKeys(values);
         const setSql = Object
             .keys(attributes)
@@ -318,7 +319,7 @@ export default class Model {
             const createOptions = {
                 ...options.where,
                 ...options.defaults
-            };
+            } as ModelQueryAttributeData;
             try {
                 model = (await this.create(createOptions))!;
                 created = true;
