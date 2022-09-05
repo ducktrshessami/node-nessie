@@ -72,8 +72,8 @@ export default class Model {
         return this._destroyed;
     }
 
-    get rowId(): string {
-        return this.dataValues.ROWID;
+    get rowId() {
+        return this.dataValues.ROWID as string;
     }
 
     constructor(metaData: Array<Metadata<any>>, row: Array<any>) {

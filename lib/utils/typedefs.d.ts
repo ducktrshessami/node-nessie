@@ -13,11 +13,13 @@ export interface InitializedModels {
     [key: string]: typeof Model;
 }
 
+export type ColumnValue = string | number;
+
 export type AttributeData = {
     type: DataTypes,
     primaryKey?: boolean,
     allowNull?: boolean,
-    defaultValue?: any
+    defaultValue?: ColumnValue
 };
 
 export interface ModelAttributes {
@@ -73,7 +75,7 @@ export type ModelBulkCreateOptions = {
 };
 
 export interface ModelQueryAttributeData {
-    [key: string]: any;
+    [key: string]: ColumnValue;
 }
 
 export type ModelQueryWhereOptions = { where: ModelQueryAttributeData };
