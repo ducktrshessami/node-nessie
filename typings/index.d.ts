@@ -50,7 +50,15 @@ type DefineModelOptions = {
     tableName?: string;
 };
 
-type ModelInitOptions = DefineModelOptions & { nessie: Nessie };
+type ConnectionOptions = { connection?: Connection };
+
+type ExecuteOptions = ConnectionOptions & { commit?: boolean };
+
+type ExecuteOneOptions = ExecuteOptions & { bindParams?: BindParameters };
+
+type ExecuteManyOptions = ExecuteOptions & { bindParams: Array<BindParameters> };
+
+type SyncOptions = ConnectionOptions & { force?: boolean };
 
 export class Nessie {
     protected configuration: NessieConfiguration;
@@ -63,18 +71,22 @@ export class Nessie {
     define(name: string, attributes: ModelAttributes, options: DefineModelOptions): typeof Model;
     initPool(): Promise<boolean>;
     connect(): Promise<Connection>;
-    execute(sql: string, bindParams?: BindParameters, commit?: boolean): Promise<Result<any>>;
-    executeMany(sql: string, bindParams: Array<BindParameters>, commit?: boolean): Promise<Results<any>>;
-    drop(): Promise<void>;
-    sync(force?: boolean): Promise<void>;
+    execute(sql: string, options?: ExecuteOneOptions): Promise<Result<any>>;
+    executeMany(sql: string, options: ExecuteManyOptions): Promise<Results<any>>;
+    drop(options?: ConnectionOptions): Promise<void>;
+    sync(options?: SyncOptions): Promise<void>;
     close(drainTime?: number): Promise<void>;
 }
+
+type ModelInitOptions = DefineModelOptions & { nessie: Nessie };
 
 type AssociationOptions = {
     foreignKey?: string,
     sourceKey?: string,
     onDelete?: OnDeleteBehavior
 };
+
+type ModelDropOptions = ConnectionOptions & { cascade?: boolean };
 
 type ModelCreateOptions = {
     select?: boolean
@@ -112,8 +124,8 @@ export class Model {
     static init(attributes: ModelAttributes, options: ModelInitOptions): void;
     static hasMany(other: typeof Model, options?: AssociationOptions): void;
     static belongsTo(other: typeof Model, options?: AssociationOptions): void;
-    static drop(cascade?: boolean): Promise<void>;
-    static sync(force?: boolean): Promise<void>;
+    static drop(options?: ModelDropOptions): Promise<void>;
+    static sync(options?: SyncOptions): Promise<void>;
     static create(values: ModelQueryAttributeData, options: { select: false }): Promise<void>;
     static create(values: ModelQueryAttributeData, options?: ModelCreateOptions): Promise<Model>;
     static bulkCreate(values: Array<ModelQueryAttributeData>, options?: ModelBulkCreateOptions): Promise<number>;

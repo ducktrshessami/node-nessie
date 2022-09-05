@@ -1,15 +1,20 @@
 import {
     BindParameters,
+    Connection,
     createPool,
     initOracleClient,
     Pool
 } from "oracledb"
 import Model from "./Model";
 import {
+    ConnectionOptions,
     DefineModelOptions,
+    ExecuteManyOptions,
+    ExecuteOneOptions,
     InitializedModels,
     ModelAttributes,
-    NessieConfiguration
+    NessieConfiguration,
+    SyncOptions
 } from "./utils/typedefs";
 
 export default class Nessie {
@@ -57,61 +62,77 @@ export default class Nessie {
         return this._pool!.getConnection();
     }
 
-    async execute(sql: string, bindParams: BindParameters = [], commit = false) {
-        const connection = await this.connect();
+    async execute(sql: string, options: ExecuteOneOptions = {}) {
+        const connection = options.connection ?? await this.connect();
         try {
             if (this.configuration.verbose) {
                 console.info(`Executing: ${sql}`);
             }
-            const result = await connection.execute(sql, bindParams);
-            if (commit) {
+            const result = await connection.execute(sql, options.bindParams ?? []);
+            if (options.commit) {
                 await connection.commit();
             }
-            await connection.close();
+            await cleanupConnection(connection, options.connection);
             return result;
         }
         catch (err) {
-            await connection.close();
+            await cleanupConnection(connection, options.connection);
             throw err;
         }
     }
 
-    async executeMany(sql: string, bindParams: Array<BindParameters>, commit = false) {
-        const connection = await this.connect();
+    async executeMany(sql: string, options: ExecuteManyOptions) {
+        const connection = options.connection ?? await this.connect();
         try {
             if (this.configuration.verbose) {
                 console.info(`Executing Many: ${sql}`);
             }
-            const result = await connection.executeMany(sql, bindParams);
-            if (commit) {
+            const result = await connection.executeMany(sql, options.bindParams);
+            if (options.commit) {
                 await connection.commit();
             }
-            await connection.close();
+            await cleanupConnection(connection, options.connection);
             return result;
         }
         catch (err) {
-            await connection.close();
+            await cleanupConnection(connection, options.connection);
             throw err;
         }
     }
 
-    async drop() {
+    async drop(options: ConnectionOptions = {}) {
+        const connection = options.connection ?? await this.connect();
         for (const model of Object.values(this.models)) {
-            await model.drop(true);
+            await model.drop({
+                connection,
+                cascade: true
+            });
         }
+        await cleanupConnection(connection, options.connection);
     }
 
-    async sync(force = false) {
+    async sync(options: SyncOptions = {}) {
+        const connection = options.connection ?? await this.connect();
         const sortedModels = Object
             .values(this.models)
             .sort((a, b) => a.parentTableCount - b.parentTableCount);
         for (const model of sortedModels) {
-            await model.sync(force);
+            await model.sync({
+                connection,
+                force: options.force
+            });
         }
+        await cleanupConnection(connection, options.connection);
     }
 
     async close(drainTime?: number) {
         await (isNaN(drainTime!) ? this._pool?.close() : this._pool?.close(drainTime));
         this._pool = null;
+    }
+}
+
+async function cleanupConnection(connection: Connection, connectionOption?: Connection) {
+    if (!connectionOption) {
+        await connection.close();
     }
 }

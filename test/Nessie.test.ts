@@ -29,7 +29,7 @@ describe("Nessie", function () {
 
     it("can sync all initialized models", async function () {
         this.timeout(5000);
-        await db.sync(true);
+        await db.sync({ force: true });
         await db.execute(`SELECT "${Example.tableName}"."ROWID" FROM "${Example.tableName}" FETCH NEXT 0 ROWS ONLY`);
         await db.execute(`SELECT "${Child.tableName}"."ROWID" FROM "${Child.tableName}" FETCH NEXT 0 ROWS ONLY`);
     });
