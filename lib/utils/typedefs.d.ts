@@ -36,6 +36,8 @@ export type ExecuteOneOptions = ExecuteOptions & { bindParams?: BindParameters }
 
 export type ExecuteManyOptions = ExecuteOptions & { bindParams: Array<BindParameters> };
 
+export type SyncOptions = ConnectionOptions & { force?: boolean };
+
 export interface FormattedModelAttributes {
     [attribute: string]: AttributeData;
 }
@@ -59,6 +61,8 @@ export type AssociationOptions = {
     sourceKey?: string,
     onDelete?: OnDeleteBehavior
 };
+
+export type ModelDropOptions = ConnectionOptions & { cascade?: boolean };
 
 export type ModelCreateOptions = {
     select?: boolean

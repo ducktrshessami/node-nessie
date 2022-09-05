@@ -6,12 +6,14 @@ import {
 } from "oracledb"
 import Model from "./Model";
 import {
+    ConnectionOptions,
     DefineModelOptions,
     ExecuteManyOptions,
     ExecuteOneOptions,
     InitializedModels,
     ModelAttributes,
-    NessieConfiguration
+    NessieConfiguration,
+    SyncOptions
 } from "./utils/typedefs";
 
 export default class Nessie {
@@ -97,18 +99,32 @@ export default class Nessie {
         }
     }
 
-    async drop() {
+    async drop(options: ConnectionOptions = {}) {
+        const connection = options.connection ?? await this.connect();
         for (const model of Object.values(this.models)) {
-            await model.drop(true);
+            await model.drop({
+                connection,
+                cascade: true
+            });
+        }
+        if (!options.connection) {
+            await connection.close();
         }
     }
 
-    async sync(force = false) {
+    async sync(options: SyncOptions = {}) {
+        const connection = options.connection ?? await this.connect();
         const sortedModels = Object
             .values(this.models)
             .sort((a, b) => a.parentTableCount - b.parentTableCount);
         for (const model of sortedModels) {
-            await model.sync(force);
+            await model.sync({
+                connection,
+                force: options.force
+            });
+        }
+        if (!options.connection) {
+            await connection.close();
         }
     }
 
