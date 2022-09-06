@@ -1,6 +1,6 @@
 import assert from "assert";
 import { config } from "dotenv";
-import { Model, Nessie } from "../";
+import { Model, Nessie, Operators } from "../";
 import initModels from "./models";
 
 describe("Model", function () {
@@ -121,7 +121,9 @@ describe("Model", function () {
                     foo: "foo"
                 }, { select: false });
                 const updated = await db.models.Example.update({ foo: "bar" }, {
-                    where: { id }
+                    where: {
+                        id: { [Operators.lt]: 2 }
+                    }
                 });
                 assert.strictEqual(updated, 1);
             });
