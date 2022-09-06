@@ -91,9 +91,7 @@ type AssociationOptions = {
 
 type ModelDropOptions = ConnectionOptions & { cascade?: boolean };
 
-type ModelCreateOptions = {
-    select?: boolean
-};
+type ModelQueryAttributesOptions = { attributes?: Array<string> };
 
 type ModelBulkCreateOptions = {
     ignoreDuplicates?: boolean
@@ -108,8 +106,6 @@ interface ModelQueryWhereData {
 }
 
 type ModelQueryWhereOptions = { where: ModelQueryWhereData };
-
-type ModelQueryAttributesOptions = { attributes?: Array<string> };
 
 type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryWhereData };
 
@@ -137,8 +133,7 @@ export class Model {
     static belongsTo(other: typeof Model, options?: AssociationOptions): void;
     static drop(options?: ModelDropOptions): Promise<void>;
     static sync(options?: SyncOptions): Promise<void>;
-    static create(values: ModelQueryAttributeData, options: { select: false }): Promise<void>;
-    static create(values: ModelQueryAttributeData, options?: ModelCreateOptions): Promise<Model>;
+    static create(values: ModelQueryAttributeData, options?: ModelQueryAttributesOptions): Promise<Model>;
     static bulkCreate(values: Array<ModelQueryAttributeData>, options?: ModelBulkCreateOptions): Promise<number>;
     static findAll(options?: FindAllModelOptions): Promise<Array<Model>>;
     static findOne(options?: FindOneModelOptions): Promise<Model | null>;
