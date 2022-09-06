@@ -21,6 +21,7 @@ export enum OnDeleteBehavior {
 }
 
 export enum Operators {
+    eq = "=",
     lt = "<",
     gt = ">"
 }
@@ -35,11 +36,13 @@ interface InitializedModels {
     [key: string]: typeof Model;
 }
 
+type ColumnValue = string | number;
+
 type AttributeData = {
     type: DataTypes,
     primaryKey?: boolean,
     allowNull?: boolean,
-    defaultValue?: any
+    defaultValue?: ColumnValue
 };
 
 interface ModelAttributes {
@@ -96,17 +99,25 @@ type ModelBulkCreateOptions = {
     ignoreDuplicates?: boolean
 };
 
-interface ModelQueryAttributeData {
-    [key: string]: any;
+interface ModelQueryWhereOperatorData {
+    [key: Operators]: ColumnValue;
 }
 
-type ModelQueryWhereOptions = { where: ModelQueryAttributeData };
+interface ModelQueryWhereData {
+    [key: string]: ColumnValue | ModelQueryWhereOperatorData;
+}
+
+type ModelQueryWhereOptions = { where: ModelQueryWhereData };
 
 type ModelQueryAttributesOptions = { attributes?: Array<string> };
 
-type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryAttributeData };
+type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryWhereData };
 
 type FindAllModelOptions = FindOneModelOptions & { limit?: number };
+
+interface ModelQueryAttributeData {
+    [key: string]: ColumnValue;
+}
 
 type FindOrCreateModelOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions & { defaults?: ModelQueryAttributeData };
 

@@ -2,7 +2,7 @@ import Nessie from "./Nessie";
 import pluralize from "pluralize";
 import assert from "node:assert";
 import { ModelInitError, ModelSyncError } from "./errors/ModelError";
-import { DataTypes, OnDeleteBehavior, Pseudocolumns } from "./utils/Constants";
+import { DataTypes, OnDeleteBehavior, Operators, Pseudocolumns } from "./utils/Constants";
 import { BindParameters, Metadata, Result } from "oracledb";
 import {
     AssociationOptions,
@@ -18,6 +18,7 @@ import {
     ModelDropOptions,
     ModelInitOptions,
     ModelQueryAttributeData,
+    ModelQueryWhereData,
     ModelQueryWhereOptions,
     SyncOptions
 } from "./utils/typedefs";
@@ -72,8 +73,8 @@ export default class Model {
         return this._destroyed;
     }
 
-    get rowId(): string {
-        return this.dataValues.ROWID;
+    get rowId() {
+        return this.dataValues.ROWID as string;
     }
 
     constructor(metaData: Array<Metadata<any>>, row: Array<any>) {
@@ -189,7 +190,7 @@ export default class Model {
         }
     }
 
-    private static formatAttributeKeys(attributes: ModelQueryAttributeData) {
+    private static formatAttributeKeys(attributes: ModelQueryWhereData): ModelQueryWhereData {
         return Object
             .keys(attributes)
             .sort()
@@ -269,14 +270,17 @@ export default class Model {
             .join(", ");
     }
 
-    private static parseEql(values: ModelQueryAttributeData, bindParams: Array<any> = []): [string, Array<any>] {
+    private static parseQueryAttributeDataSql(values: ModelQueryWhereData, bindParams: Array<any> = []): [string, Array<any>] {
         const attributes = this.formatAttributeKeys(values);
-        const setSql = Object
-            .keys(attributes)
-            .map((attribute, i) => `"${this.tableName}"."${attribute}" = :${i + bindParams.length + 1}`)
-            .join(", ");
-        bindParams.push(...Object.values(attributes));
-        return [setSql, bindParams];
+        const sqlData: Array<string> = [];
+        for (const attribute in attributes) {
+            const operatorData: any = typeof attributes[attribute] === "object" ? attributes[attribute] : { [Operators.eq]: attributes[attribute] };
+            for (const operator in operatorData) {
+                sqlData.push(`"${this.tableName}"."${attribute}" ${operator} :${bindParams.length + 1}`);
+                bindParams.push(operatorData[operator]);
+            }
+        }
+        return [sqlData.join(", "), bindParams];
     }
 
     static async findAll(options: FindAllModelOptions = {}) {
@@ -285,7 +289,7 @@ export default class Model {
         const attributeSql = this.parseSelectAttributeSql(options.attributes);
         let sqlData = [`SELECT ${attributeSql} FROM "${this.tableName}"`];
         if (options.where) {
-            const [where] = this.parseEql(options.where, bindParams);
+            const [where] = this.parseQueryAttributeDataSql(options.where, bindParams);
             if (where) {
                 sqlData.push(`WHERE ${where}`);
             }
@@ -318,7 +322,7 @@ export default class Model {
             const createOptions = {
                 ...options.where,
                 ...options.defaults
-            };
+            } as ModelQueryAttributeData;
             try {
                 model = (await this.create(createOptions))!;
                 created = true;
@@ -346,8 +350,8 @@ export default class Model {
 
     static async update(values: ModelQueryAttributeData, options: ModelQueryWhereOptions) {
         this.initCheck();
-        const [valuesSql, bindParams] = this.parseEql(values);
-        const [where] = this.parseEql(options.where, bindParams);
+        const [valuesSql, bindParams] = this.parseQueryAttributeDataSql(values);
+        const [where] = this.parseQueryAttributeDataSql(options.where, bindParams);
         const { rowsAffected } = await this._nessie!.execute(`UPDATE "${this.tableName}" SET ${valuesSql} WHERE ${where}`, {
             bindParams,
             commit: true
@@ -370,7 +374,7 @@ export default class Model {
 
     static async destroy(options: ModelQueryWhereOptions) {
         this.initCheck();
-        const [where, bindParams] = this.parseEql(options.where);
+        const [where, bindParams] = this.parseQueryAttributeDataSql(options.where);
         const { rowsAffected } = await this._nessie!.execute(`DELETE FROM "${this.tableName}" WHERE ${where}`, {
             bindParams,
             commit: true

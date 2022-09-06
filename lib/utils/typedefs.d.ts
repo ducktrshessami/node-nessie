@@ -13,11 +13,13 @@ export interface InitializedModels {
     [key: string]: typeof Model;
 }
 
+export type ColumnValue = string | number;
+
 export type AttributeData = {
     type: DataTypes,
     primaryKey?: boolean,
     allowNull?: boolean,
-    defaultValue?: any
+    defaultValue?: ColumnValue
 };
 
 export interface ModelAttributes {
@@ -72,16 +74,24 @@ export type ModelBulkCreateOptions = {
     ignoreDuplicates?: boolean
 };
 
-export interface ModelQueryAttributeData {
-    [key: string]: any;
+export interface ModelQueryWhereOperatorData {
+    [key: Operators]: ColumnValue;
 }
 
-export type ModelQueryWhereOptions = { where: ModelQueryAttributeData };
+export interface ModelQueryWhereData {
+    [key: string]: ColumnValue | ModelQueryWhereOperatorData;
+}
+
+export type ModelQueryWhereOptions = { where: ModelQueryWhereData };
 
 export type ModelQueryAttributesOptions = { attributes?: Array<string> };
 
-export type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryAttributeData };
+export type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryWhereData };
 
 export type FindAllModelOptions = FindOneModelOptions & { limit?: number };
+
+export interface ModelQueryAttributeData {
+    [key: string]: ColumnValue;
+}
 
 export type FindOrCreateModelOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions & { defaults?: ModelQueryAttributeData };

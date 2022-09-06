@@ -19,6 +19,7 @@ export enum OnDeleteBehavior {
 }
 
 export enum Operators {
+    eq = "=",
     lt = "<",
     gt = ">"
 }
