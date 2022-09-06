@@ -3,48 +3,48 @@ import Model from "../Model";
 import Nessie from "../Nessie";
 import { DataTypes, OnDeleteBehavior } from "./Constants";
 
-export type NessieInitOptions = {
+type NessieInitOptions = {
     verbose?: boolean
 };
 
-export type NessieConfiguration = NessieInitOptions & PoolAttributes & InitialiseOptions;
+type NessieConfiguration = NessieInitOptions & PoolAttributes & InitialiseOptions;
 
-export interface InitializedModels {
+interface InitializedModels {
     [key: string]: typeof Model;
 }
 
-export type ColumnValue = string | number;
+type ColumnValue = string | number;
 
-export type AttributeData = {
+type AttributeData = {
     type: DataTypes,
     primaryKey?: boolean,
     allowNull?: boolean,
     defaultValue?: ColumnValue
 };
 
-export interface ModelAttributes {
+interface ModelAttributes {
     [attribute: string]: AttributeData | DataTypes;
 }
 
-export type DefineModelOptions = {
+type DefineModelOptions = {
     tableName?: string;
 };
 
-export type ConnectionOptions = { connection?: Connection };
+type ConnectionOptions = { connection?: Connection };
 
-export type ExecuteOptions = ConnectionOptions & { commit?: boolean };
+type ExecuteOptions = ConnectionOptions & { commit?: boolean };
 
-export type ExecuteOneOptions = ExecuteOptions & { bindParams?: BindParameters };
+type ExecuteOneOptions = ExecuteOptions & { bindParams?: BindParameters };
 
-export type ExecuteManyOptions = ExecuteOptions & { bindParams: Array<BindParameters> };
+type ExecuteManyOptions = ExecuteOptions & { bindParams: Array<BindParameters> };
 
-export type SyncOptions = ConnectionOptions & { force?: boolean };
+type SyncOptions = ConnectionOptions & { force?: boolean };
 
-export interface FormattedModelAttributes {
+interface FormattedModelAttributes {
     [attribute: string]: AttributeData;
 }
 
-export type Association = {
+type Association = {
     foreignKey: string,
     sourceKey: string,
     type: DataTypes,
@@ -52,46 +52,46 @@ export type Association = {
     source: boolean
 }
 
-export interface FormattedModelAssociations {
+interface FormattedModelAssociations {
     [other: string]: Association;
 }
 
-export type ModelInitOptions = DefineModelOptions & { nessie: Nessie };
+type ModelInitOptions = DefineModelOptions & { nessie: Nessie };
 
-export type AssociationOptions = {
+type AssociationOptions = {
     foreignKey?: string,
     sourceKey?: string,
     onDelete?: OnDeleteBehavior
 };
 
-export type ModelDropOptions = ConnectionOptions & { cascade?: boolean };
+type ModelDropOptions = ConnectionOptions & { cascade?: boolean };
 
-export type ModelCreateOptions = {
+type ModelCreateOptions = {
     select?: boolean
 };
 
-export type ModelBulkCreateOptions = {
+type ModelBulkCreateOptions = {
     ignoreDuplicates?: boolean
 };
 
-export interface ModelQueryWhereOperatorData {
+interface ModelQueryWhereOperatorData {
     [key: Operators]: ColumnValue;
 }
 
-export interface ModelQueryWhereData {
+interface ModelQueryWhereData {
     [key: string]: ColumnValue | ModelQueryWhereOperatorData;
 }
 
-export type ModelQueryWhereOptions = { where: ModelQueryWhereData };
+type ModelQueryWhereOptions = { where: ModelQueryWhereData };
 
-export type ModelQueryAttributesOptions = { attributes?: Array<string> };
+type ModelQueryAttributesOptions = { attributes?: Array<string> };
 
-export type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryWhereData };
+type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryWhereData };
 
-export type FindAllModelOptions = FindOneModelOptions & { limit?: number };
+type FindAllModelOptions = FindOneModelOptions & { limit?: number };
 
-export interface ModelQueryAttributeData {
+interface ModelQueryAttributeData {
     [key: string]: ColumnValue;
 }
 
-export type FindOrCreateModelOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions & { defaults?: ModelQueryAttributeData };
+type FindOrCreateModelOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions & { defaults?: ModelQueryAttributeData };
