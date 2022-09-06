@@ -60,11 +60,13 @@ describe("Model", function () {
 
             it("create returns the created model instance", async function () {
                 this.timeout(5000);
+                const id = 1;
                 const instance = await db.models.Example.create({
-                    id: 1,
+                    id,
                     foo: "bar"
                 });
                 assert.strictEqual(instance!.constructor, db.models.Example);
+                assert.strictEqual(instance!.dataValues.id, id);
             });
 
             it("bulkCreate functions as intended", async function () {
