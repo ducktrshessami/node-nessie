@@ -2,7 +2,7 @@ import Nessie from "./Nessie";
 import pluralize from "pluralize";
 import assert from "node:assert";
 import { ModelInitError, ModelSyncError } from "./errors/ModelError";
-import { DataTypes, OnDeleteBehavior, Pseudocolumns } from "./utils/Constants";
+import { DataTypes, OnDeleteBehavior, Operators, Pseudocolumns } from "./utils/Constants";
 import { BindParameters, Metadata, Result } from "oracledb";
 import {
     AssociationOptions,
@@ -190,7 +190,7 @@ export default class Model {
         }
     }
 
-    private static formatAttributeKeys(attributes: ModelQueryWhereData) {
+    private static formatAttributeKeys(attributes: ModelQueryWhereData): ModelQueryWhereData {
         return Object
             .keys(attributes)
             .sort()
@@ -272,12 +272,15 @@ export default class Model {
 
     private static parseQueryAttributeDataSql(values: ModelQueryWhereData, bindParams: Array<any> = []): [string, Array<any>] {
         const attributes = this.formatAttributeKeys(values);
-        const setSql = Object
-            .keys(attributes)
-            .map((attribute, i) => `"${this.tableName}"."${attribute}" = :${i + bindParams.length + 1}`)
-            .join(", ");
-        bindParams.push(...Object.values(attributes));
-        return [setSql, bindParams];
+        const sqlData: Array<string> = [];
+        for (const attribute in attributes) {
+            const operatorData: any = typeof attributes[attribute] === "object" ? attributes[attribute] : { [Operators.eq]: attributes[attribute] };
+            for (const operator in operatorData) {
+                sqlData.push(`"${this.tableName}"."${attribute}" ${operator} :${bindParams.length + 1}`);
+                bindParams.push(operatorData[operator]);
+            }
+        }
+        return [sqlData.join(", "), bindParams];
     }
 
     static async findAll(options: FindAllModelOptions = {}) {
