@@ -58,7 +58,7 @@ describe("Model", function () {
                 return db.models.Example.sync({ force: true });
             });
 
-            it("create returns a model instance by default", async function () {
+            it("create returns the created model instance", async function () {
                 this.timeout(5000);
                 const instance = await db.models.Example.create({
                     id: 1,
@@ -119,7 +119,7 @@ describe("Model", function () {
                 await db.models.Example.create({
                     id,
                     foo: "foo"
-                }, { select: false });
+                });
                 const updated = await db.models.Example.update({ foo: "bar" }, {
                     where: {
                         id: { [Operators.lt]: 2 }
@@ -134,7 +134,7 @@ describe("Model", function () {
                 await db.models.Example.create({
                     id,
                     foo: "foo"
-                }, { select: false });
+                });
                 const destroyed = await db.models.Example.destroy({
                     where: { id }
                 });
