@@ -1,9 +1,25 @@
 import Nessie from "./Nessie";
 import pluralize from "pluralize";
 import assert from "node:assert";
-import { ModelInitError, ModelSyncError } from "./errors/ModelError";
-import { DataTypes, OnDeleteBehavior, Operators, Pseudocolumns } from "./utils/Constants";
-import { BindParameters, Metadata, Result } from "oracledb";
+import {
+    ModelInitError,
+    ModelSyncError
+} from "./errors/ModelError";
+import {
+    DataTypes,
+    OnDeleteBehavior,
+    Operators,
+    Pseudocolumns
+} from "./utils/Constants";
+import {
+    BindParameters,
+    BIND_OUT,
+    DB_TYPE_NUMBER,
+    DB_TYPE_RAW,
+    DB_TYPE_VARCHAR,
+    Metadata,
+    Result
+} from "oracledb";
 import {
     AssociationOptions,
     AttributeData,
@@ -14,10 +30,10 @@ import {
     FormattedModelAttributes,
     ModelAttributes,
     ModelBulkCreateOptions,
-    ModelCreateOptions,
     ModelDropOptions,
     ModelInitOptions,
     ModelQueryAttributeData,
+    ModelQueryAttributesOptions,
     ModelQueryWhereData,
     ModelQueryWhereOptions,
     SyncOptions
@@ -202,7 +218,7 @@ export default class Model {
             }, {});
     }
 
-    private static parseValueSql(values: ModelQueryAttributeData): [string, string, BindParameters] {
+    private static parseValueSql(values: ModelQueryAttributeData): [string, string, Array<any>] {
         const attributes = this.formatAttributeKeys(values);
         const attributeKeys = Object.keys(attributes);
         const attributeSql = attributeKeys
@@ -215,16 +231,52 @@ export default class Model {
         return [attributeSql, bindParamSql, bindParams];
     }
 
-    static async create(values: ModelQueryAttributeData, options: ModelCreateOptions = {}) {
+    private static parseReturningSql(attributes: Array<string> = ["ROWID"].concat(Object.keys(this._attributes!), this.foreignKeys), bindParams: Array<any> = []): [Array<Metadata<any>>, string, Array<any>] {
+        const [metadata, returningSql, intoSql] = attributes.reduce((sqlData: [Array<Metadata<any>>, Array<string>, Array<string>], attribute) => {
+            let found = true;
+            if (attribute in this._attributes!) {
+                found = true;
+                bindParams.push({
+                    type: outBindType(this._attributes![attribute].type),
+                    dir: BIND_OUT
+                });
+            }
+            else if (this.foreignKeys.includes(attribute)) {
+                found = true;
+                const association = Object
+                    .values(this._associations!)
+                    .find(association => association.foreignKey === attribute);
+                bindParams.push({
+                    type: outBindType(association!.type),
+                    dir: BIND_OUT
+                });
+            }
+            else if (attribute === "ROWID") {
+                found = true;
+                bindParams.push({
+                    type: outBindType(DataTypes.STRING),
+                    dir: BIND_OUT
+                });
+            }
+            if (found) {
+                sqlData[0].push({ name: attribute });
+                sqlData[1].push(`"${this.tableName}"."${attribute}"`);
+                sqlData[2].push(`:${bindParams.length}`);
+            }
+            return sqlData;
+        }, [[], [], []]);
+        return [metadata, `RETURNING ${returningSql.join(", ")} INTO ${intoSql.join(", ")}`, bindParams];
+    }
+
+    static async create(values: ModelQueryAttributeData, options: ModelQueryAttributesOptions = {}) {
         this.initCheck();
         const [attributeSql, valuesSql, bindParams] = this.parseValueSql(values);
-        const { lastRowid } = await this._nessie!.execute(`INSERT INTO "${this.tableName}" (${attributeSql}) VALUES (${valuesSql})`, {
+        const [metadata, returningSql] = this.parseReturningSql(options.attributes, bindParams);
+        const { outBinds } = await this._nessie!.execute(`INSERT INTO "${this.tableName}" (${attributeSql}) VALUES (${valuesSql}) ${returningSql}`, {
             bindParams,
             commit: true
         });
-        if (options.select ?? true) {
-            return this.findByRowId(lastRowid!);
-        }
+        return new this(metadata, (outBinds as Array<Array<any>>).map(valueArray => valueArray[0]));
     }
 
     private static buildBulkQuery(values: Array<ModelQueryAttributeData>, ignoreDuplicates: boolean = false): [string, Array<BindParameters>] {
@@ -400,5 +452,13 @@ function formatValue(value: any): string {
     switch (typeof value) {
         case "string": return `''${value.replace("'", "'''")}''`;
         default: return value.toString();
+    }
+}
+
+function outBindType(type: DataTypes) {
+    switch (type) {
+        case DataTypes.NUMBER: return DB_TYPE_NUMBER;
+        case DataTypes.STRING: return DB_TYPE_VARCHAR;
+        default: return DB_TYPE_RAW;
     }
 }

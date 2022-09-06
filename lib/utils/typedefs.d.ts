@@ -66,9 +66,7 @@ type AssociationOptions = {
 
 type ModelDropOptions = ConnectionOptions & { cascade?: boolean };
 
-type ModelCreateOptions = {
-    select?: boolean
-};
+type ModelQueryAttributesOptions = { attributes?: Array<string> };
 
 type ModelBulkCreateOptions = {
     ignoreDuplicates?: boolean
@@ -83,8 +81,6 @@ interface ModelQueryWhereData {
 }
 
 type ModelQueryWhereOptions = { where: ModelQueryWhereData };
-
-type ModelQueryAttributesOptions = { attributes?: Array<string> };
 
 type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryWhereData };
 
