@@ -3,6 +3,8 @@ A partial ORM for oracledb
 
 This is not intended to be a finished project for release. I'm writing exactly what I need for a current personal project, and at the time of writing this, I do not intend to maintain this.
 
+Based on [Sequelize](https://sequelize.org/)
+
 ## Features
 
 ## Contributing
