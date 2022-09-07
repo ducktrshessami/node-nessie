@@ -279,7 +279,7 @@ export default class Model {
         return new this(metadata, (outBinds as Array<Array<any>>).map(valueArray => valueArray[0]));
     }
 
-    private static buildBulkQuery(values: Array<ModelQueryAttributeData>, ignoreDuplicates: boolean = false): [string, Array<BindParameters>] {
+    private static buildBulkQuery(values: Array<ModelQueryAttributeData>, options: ModelBulkCreateOptions): [string, Array<BindParameters>] {
         const structure = values.reduce((struct: any, value) => {
             const formatted = this.formatAttributeKeys(value);
             Object
@@ -296,13 +296,13 @@ export default class Model {
             .join(", ");
         const bindParamList = values.map(value => structureAttributeList.map(attribute => value[attribute] ?? null));
         const insertSql = `INSERT INTO "${this.tableName}" (${structureAttributes}) VALUES (${bindParamSql})`;
-        const sql = ignoreDuplicates ? `BEGIN ${insertSql}; EXCEPTION WHEN OTHERS THEN IF sqlcode <> -1 THEN raise; END IF; END;` : insertSql;
+        const sql = options.ignoreDuplicates ? `BEGIN ${insertSql}; EXCEPTION WHEN OTHERS THEN IF sqlcode <> -1 THEN raise; END IF; END;` : insertSql;
         return [sql, bindParamList];
     }
 
     static async bulkCreate(values: Array<ModelQueryAttributeData>, options: ModelBulkCreateOptions = {}) {
         this.initCheck();
-        const [sql, bindParams] = this.buildBulkQuery(values, options.ignoreDuplicates);
+        const [sql, bindParams] = this.buildBulkQuery(values, options);
         const { rowsAffected } = await this._nessie!.executeMany(sql, {
             bindParams,
             commit: true
