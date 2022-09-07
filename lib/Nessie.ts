@@ -85,7 +85,7 @@ export default class Nessie {
         const connection = options.connection ?? await this.connect();
         try {
             if (this.configuration.verbose) {
-                console.info(`Executing Many: ${sql}`);
+                console.info(`Executing Many (${options.binds.length}): ${sql}`);
             }
             const result = await connection.executeMany(sql, options.binds, { bindDefs: options.bindDefs });
             if (options.commit) {
