@@ -294,17 +294,17 @@ export default class Model {
         const bindParamSql = structureAttributeList
             .map((_, i) => `:${i + 1}`)
             .join(", ");
-        const bindParamList = values.map(value => structureAttributeList.map(attribute => value[attribute] ?? null));
+        const binds = values.map(value => structureAttributeList.map(attribute => value[attribute] ?? null));
         const insertSql = `INSERT INTO "${this.tableName}" (${structureAttributes}) VALUES (${bindParamSql})`;
         const sql = options.ignoreDuplicates ? `BEGIN ${insertSql}; EXCEPTION WHEN OTHERS THEN IF sqlcode <> -1 THEN raise; END IF; END;` : insertSql;
-        return [sql, bindParamList];
+        return [sql, binds];
     }
 
     static async bulkCreate(values: Array<ModelQueryAttributeData>, options: ModelBulkCreateOptions = {}) {
         this.initCheck();
-        const [sql, bindParams] = this.buildBulkQuery(values, options);
+        const [sql, binds] = this.buildBulkQuery(values, options);
         const { rowsAffected } = await this._nessie!.executeMany(sql, {
-            bindParams,
+            binds,
             commit: true
         });
         return rowsAffected ?? 0;
