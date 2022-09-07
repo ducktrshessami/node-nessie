@@ -1,4 +1,10 @@
-import { BindParameters, Connection, InitialiseOptions, PoolAttributes } from "oracledb";
+import {
+    BindDefinition,
+    BindParameters,
+    Connection,
+    InitialiseOptions,
+    PoolAttributes
+} from "oracledb";
 import Model from "../Model";
 import Nessie from "../Nessie";
 import { DataTypes, OnDeleteBehavior } from "./Constants";
@@ -36,7 +42,10 @@ type ExecuteOptions = ConnectionOptions & { commit?: boolean };
 
 type ExecuteOneOptions = ExecuteOptions & { bindParams?: BindParameters };
 
-type ExecuteManyOptions = ExecuteOptions & { bindParams: Array<BindParameters> };
+type ExecuteManyOptions = ExecuteOptions & {
+    binds: Array<BindParameters>,
+    bindDefs?: BindDefinition[]
+};
 
 type SyncOptions = ConnectionOptions & { force?: boolean };
 

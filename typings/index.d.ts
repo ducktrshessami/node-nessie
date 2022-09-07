@@ -1,4 +1,4 @@
-import { BindParameters, Connection, InitialiseOptions, Pool, PoolAttributes, Result, Results } from "oracledb";
+import { BindDefinition, BindParameters, Connection, InitialiseOptions, Pool, PoolAttributes, Result, Results } from "oracledb";
 
 export enum DataTypes {
     STRING = "VARCHAR(255)",
@@ -59,7 +59,10 @@ type ExecuteOptions = ConnectionOptions & { commit?: boolean };
 
 type ExecuteOneOptions = ExecuteOptions & { bindParams?: BindParameters };
 
-type ExecuteManyOptions = ExecuteOptions & { bindParams: Array<BindParameters> };
+type ExecuteManyOptions = ExecuteOptions & {
+    binds: Array<BindParameters>,
+    bindDefs?: BindDefinition[]
+};
 
 type SyncOptions = ConnectionOptions & { force?: boolean };
 
