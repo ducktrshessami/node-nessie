@@ -93,9 +93,7 @@ type ModelDropOptions = ConnectionOptions & { cascade?: boolean };
 
 type ModelQueryAttributesOptions = { attributes?: Array<string> };
 
-type ModelBulkCreateOptions = {
-    ignoreDuplicates?: boolean
-};
+type ModelBulkCreateOptions = ModelQueryAttributesOptions & { ignoreDuplicates?: boolean };
 
 interface ModelQueryWhereOperatorData {
     [key: Operators]: ColumnValue;
