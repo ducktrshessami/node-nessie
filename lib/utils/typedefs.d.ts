@@ -20,7 +20,7 @@ interface InitializedModels {
     [key: string]: typeof Model;
 }
 
-type ColumnValue = string | number;
+type ColumnValue = string | number | null;
 
 type AttributeData = {
     type: DataTypes,
