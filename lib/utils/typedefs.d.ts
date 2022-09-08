@@ -3,6 +3,7 @@ import {
     BindParameters,
     Connection,
     InitialiseOptions,
+    Metadata,
     PoolAttributes
 } from "oracledb";
 import Model from "../Model";
@@ -76,6 +77,13 @@ type AssociationOptions = {
 type ModelDropOptions = ConnectionOptions & { cascade?: boolean };
 
 type ModelQueryAttributesOptions = { attributes?: Array<string> };
+
+type BuiltModelBulkQuery = {
+    metadata: Array<Metadata<any>>;
+    sql: string,
+    binds: Array<BindParameters>,
+    bindDefs: Array<BindDefinition>
+};
 
 type ModelBulkCreateOptions = ModelQueryAttributesOptions & { ignoreDuplicates?: boolean };
 
