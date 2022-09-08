@@ -118,7 +118,7 @@ describe("Model", function () {
             it("update functions as intended", async function () {
                 this.timeout(5000);
                 const id = 1;
-                await db.models.Example.bulkCreate([
+                const [first] = await db.models.Example.bulkCreate([
                     {
                         id,
                         foo: "foo"
@@ -135,6 +135,7 @@ describe("Model", function () {
                 });
                 assert(updatedModels.every(updated => updated instanceof Example));
                 assert.strictEqual(updatedModels.length, 1);
+                assert.strictEqual(updatedModels[0].rowId, first.rowId);
             });
 
             it("destroy functions as intended", async function () {
