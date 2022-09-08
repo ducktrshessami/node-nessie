@@ -114,11 +114,13 @@ type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryWhe
 
 type FindAllModelOptions = FindOneModelOptions & { limit?: number };
 
+type ModelQueryUpdateOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions;
+
 interface ModelQueryAttributeData {
     [key: string]: ColumnValue;
 }
 
-type FindOrCreateModelOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions & { defaults?: ModelQueryAttributeData };
+type FindOrCreateModelOptions = ModelQueryUpdateOptions & { defaults?: ModelQueryAttributeData };
 
 export class Model {
     static readonly tableName: string;
@@ -142,7 +144,7 @@ export class Model {
     static findOne(options?: FindOneModelOptions): Promise<Model | null>;
     static findByRowId(rowId: string): Promise<Model | null>;
     static findOrCreate(options: FindOrCreateModelOptions): Promise<[Model, boolean]>;
-    static update(values: ModelQueryAttributeData, options: ModelQueryWhereOptions): Promise<number>;
+    static update(values: ModelQueryAttributeData, options: ModelQueryUpdateOptions): Promise<Array<Model>>;
     static destroy(options: ModelQueryWhereOptions): Promise<number>;
 
     update(values: ModelQueryAttributeData): Promise<this>;
