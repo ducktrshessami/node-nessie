@@ -96,6 +96,8 @@ type ModelDropOptions = ConnectionOptions & { cascade?: boolean };
 
 type ModelQueryAttributesOptions = { attributes?: Array<string> };
 
+type ModelCreateOptions = ModelQueryAttributesOptions & { ignoreDuplicate?: boolean };
+
 type ModelBulkCreateOptions = ModelQueryAttributesOptions & { ignoreDuplicates?: boolean };
 
 interface ModelQueryWhereOperatorData {
@@ -134,7 +136,7 @@ export class Model {
     static belongsTo(other: typeof Model, options?: AssociationOptions): void;
     static drop(options?: ModelDropOptions): Promise<void>;
     static sync(options?: SyncOptions): Promise<void>;
-    static create(values: ModelQueryAttributeData, options?: ModelQueryAttributesOptions): Promise<Model>;
+    static create(values: ModelQueryAttributeData, options?: ModelCreateOptions): Promise<Model | null>;
     static bulkCreate(values: Array<ModelQueryAttributeData>, options?: ModelBulkCreateOptions): Promise<Array<Model>>;
     static findAll(options?: FindAllModelOptions): Promise<Array<Model>>;
     static findOne(options?: FindOneModelOptions): Promise<Model | null>;
