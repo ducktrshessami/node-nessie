@@ -83,8 +83,8 @@ describe("Model", function () {
                 ];
                 const initial = await db.models.Example.bulkCreate(values);
                 const ignored = await db.models.Example.bulkCreate(values, { ignoreDuplicates: true });
-                assert.strictEqual(initial, values.length);
-                assert.strictEqual(ignored, 0);
+                assert(initial.every(created => created instanceof Example));
+                assert.strictEqual(ignored.length, 0);
             });
 
             it("findByRowId functions as intended", async function () {
