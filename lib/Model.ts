@@ -36,6 +36,7 @@ import {
     ModelDropOptions,
     ModelInitOptions,
     ModelQueryAttributeData,
+    ModelQueryAttributesOptions,
     ModelQueryUpdateOptions,
     ModelQueryWhereData,
     ModelQueryWhereOptions,
@@ -430,16 +431,12 @@ export default class Model {
         return this.parseOutBinds([outBinds as any], metadata);
     }
 
-    private async patch() {
-        const { dataValues } = await this.model.findByRowId(this.rowId);
-        this.dataValues = dataValues;
-    }
-
-    async update(values: ModelQueryAttributeData) {
-        await this.model.update(values, {
-            where: { ROWID: this.rowId }
+    async update(values: ModelQueryAttributeData, options: ModelQueryAttributesOptions = {}) {
+        const [updated] = await this.model.update(values, {
+            where: { ROWID: this.rowId },
+            attributes: options.attributes
         });
-        await this.patch();
+        this.dataValues = updated.dataValues;
         return this;
     }
 
