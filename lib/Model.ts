@@ -222,19 +222,6 @@ export default class Model {
             }, {});
     }
 
-    private static parseValueSql(values: ModelQueryAttributeData): [string, string, Array<any>] {
-        const attributes = this.formatAttributeKeys(values);
-        const attributeKeys = Object.keys(attributes);
-        const attributeSql = attributeKeys
-            .map(attribute => `"${attribute}"`)
-            .join(", ");
-        const bindParamSql = attributeKeys
-            .map((_, i) => `:${i + 1}`)
-            .join(", ");
-        const bindParams = Object.values(attributes);
-        return [attributeSql, bindParamSql, bindParams];
-    }
-
     private static parseReturningSql(attributes: Array<string> = Object.keys(this._attributes!).concat(this.foreignKeys), priorBinds: number): [Array<Metadata<any>>, string, Array<BindDefinition>] {
         if (!attributes.includes("ROWID")) {
             attributes.push("ROWID");
