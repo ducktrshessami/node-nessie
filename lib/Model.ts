@@ -290,6 +290,16 @@ export default class Model {
         };
     }
 
+    private static parseOutBinds(outBinds: Array<Array<Array<ColumnValue> | null>>, metadata: Array<Metadata<any>>) {
+        return outBinds!.reduce((created: Array<Model>, row) => {
+            const formattedRow = row.map((outBind) => outBind ? outBind[0] : null);
+            if (formattedRow.some(dataValue => dataValue)) {
+                created.push(new this(metadata, formattedRow));
+            }
+            return created;
+        }, []);
+    }
+
     static async bulkCreate(values: Array<ModelQueryAttributeData>, options: ModelBulkCreateOptions = {}) {
         this.initCheck();
         const {
@@ -303,13 +313,7 @@ export default class Model {
             bindDefs,
             commit: true
         });
-        return outBinds!.reduce((created: Array<Model>, row: any) => {
-            const formattedRow: Array<ColumnValue> = row.map((outBind: Array<ColumnValue>) => outBind ? outBind[0] : null);
-            if (formattedRow.some(dataValue => dataValue)) {
-                created.push(new this(metadata, formattedRow));
-            }
-            return created;
-        }, []);
+        return this.parseOutBinds(outBinds as any, metadata);
     }
 
     static async create(values: ModelQueryAttributeData, options: ModelCreateOptions = {}) {
