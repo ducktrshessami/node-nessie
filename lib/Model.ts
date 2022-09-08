@@ -32,10 +32,10 @@ import {
     FormattedModelAttributes,
     ModelAttributes,
     ModelBulkCreateOptions,
+    ModelCreateOptions,
     ModelDropOptions,
     ModelInitOptions,
     ModelQueryAttributeData,
-    ModelQueryAttributesOptions,
     ModelQueryWhereData,
     ModelQueryWhereOptions,
     SyncOptions
@@ -264,17 +264,6 @@ export default class Model {
         return [metadata, `RETURNING ${attributeSqlData.join(", ")} INTO ${outBindSqlData.join(", ")}`, bindDefs];
     }
 
-    static async create(values: ModelQueryAttributeData, options: ModelQueryAttributesOptions = {}) {
-        this.initCheck();
-        // const [attributeSql, valuesSql, bindParams] = this.parseValueSql(values);
-        // const [metadata, returningSql] = this.parseReturningSql(options.attributes, bindParams);
-        // const { outBinds } = await this._nessie!.execute(`INSERT INTO "${this.tableName}" (${attributeSql}) VALUES (${valuesSql}) ${returningSql}`, {
-        //     bindParams,
-        //     commit: true
-        // });
-        // return new this(metadata, (outBinds as Array<Array<any>>).map(valueArray => valueArray[0]));
-    }
-
     private static buildBulkQuery(values: Array<ModelQueryAttributeData>, options: ModelBulkCreateOptions): BuiltModelBulkQuery {
         const structure = values.reduce((struct: ModelQueryAttributeData, value) => {
             const formatted = this.formatAttributeKeys(value) as ModelQueryAttributeData;
@@ -321,6 +310,15 @@ export default class Model {
             }
             return created;
         }, []);
+    }
+
+    static async create(values: ModelQueryAttributeData, options: ModelCreateOptions = {}) {
+        this.initCheck();
+        const [created] = await this.bulkCreate([values], {
+            attributes: options.attributes,
+            ignoreDuplicates: options.ignoreDuplicate
+        });
+        return created ?? null;
     }
 
     private static parseSelectAttributeSql(attributes: Array<string> = Object.keys(this._attributes!)) {
