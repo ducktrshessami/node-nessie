@@ -118,16 +118,23 @@ describe("Model", function () {
             it("update functions as intended", async function () {
                 this.timeout(5000);
                 const id = 1;
-                await db.models.Example.create({
-                    id,
-                    foo: "foo"
-                });
-                const updated = await db.models.Example.update({ foo: "bar" }, {
+                await db.models.Example.bulkCreate([
+                    {
+                        id,
+                        foo: "foo"
+                    },
+                    {
+                        id: 2,
+                        foo: "foobar"
+                    }
+                ]);
+                const updatedModels = await db.models.Example.update({ foo: "bar" }, {
                     where: {
                         id: { [Operators.lt]: 2 }
                     }
                 });
-                assert.strictEqual(updated, 1);
+                assert(updatedModels.every(updated => updated instanceof Example));
+                assert.strictEqual(updatedModels.length, 1);
             });
 
             it("destroy functions as intended", async function () {
