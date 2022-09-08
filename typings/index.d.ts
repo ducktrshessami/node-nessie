@@ -1,4 +1,4 @@
-import { BindParameters, Connection, InitialiseOptions, Pool, PoolAttributes, Result, Results } from "oracledb";
+import { BindDefinition, BindParameters, Connection, InitialiseOptions, Pool, PoolAttributes, Result, Results } from "oracledb";
 
 export enum DataTypes {
     STRING = "VARCHAR(255)",
@@ -36,7 +36,7 @@ interface InitializedModels {
     [key: string]: typeof Model;
 }
 
-type ColumnValue = string | number;
+type ColumnValue = string | number | null;
 
 type AttributeData = {
     type: DataTypes,
@@ -59,7 +59,10 @@ type ExecuteOptions = ConnectionOptions & { commit?: boolean };
 
 type ExecuteOneOptions = ExecuteOptions & { bindParams?: BindParameters };
 
-type ExecuteManyOptions = ExecuteOptions & { bindParams: Array<BindParameters> };
+type ExecuteManyOptions = ExecuteOptions & {
+    binds: Array<BindParameters>,
+    bindDefs?: BindDefinition[]
+};
 
 type SyncOptions = ConnectionOptions & { force?: boolean };
 
@@ -91,13 +94,11 @@ type AssociationOptions = {
 
 type ModelDropOptions = ConnectionOptions & { cascade?: boolean };
 
-type ModelCreateOptions = {
-    select?: boolean
-};
+type ModelQueryAttributesOptions = { attributes?: Array<string> };
 
-type ModelBulkCreateOptions = {
-    ignoreDuplicates?: boolean
-};
+type ModelCreateOptions = ModelQueryAttributesOptions & { ignoreDuplicate?: boolean };
+
+type ModelBulkCreateOptions = ModelQueryAttributesOptions & { ignoreDuplicates?: boolean };
 
 interface ModelQueryWhereOperatorData {
     [key: Operators]: ColumnValue;
@@ -109,17 +110,17 @@ interface ModelQueryWhereData {
 
 type ModelQueryWhereOptions = { where: ModelQueryWhereData };
 
-type ModelQueryAttributesOptions = { attributes?: Array<string> };
-
 type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryWhereData };
 
 type FindAllModelOptions = FindOneModelOptions & { limit?: number };
+
+type ModelQueryUpdateOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions;
 
 interface ModelQueryAttributeData {
     [key: string]: ColumnValue;
 }
 
-type FindOrCreateModelOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions & { defaults?: ModelQueryAttributeData };
+type FindOrCreateModelOptions = ModelQueryUpdateOptions & { defaults?: ModelQueryAttributeData };
 
 export class Model {
     static readonly tableName: string;
@@ -137,16 +138,15 @@ export class Model {
     static belongsTo(other: typeof Model, options?: AssociationOptions): void;
     static drop(options?: ModelDropOptions): Promise<void>;
     static sync(options?: SyncOptions): Promise<void>;
-    static create(values: ModelQueryAttributeData, options: { select: false }): Promise<void>;
-    static create(values: ModelQueryAttributeData, options?: ModelCreateOptions): Promise<Model>;
-    static bulkCreate(values: Array<ModelQueryAttributeData>, options?: ModelBulkCreateOptions): Promise<number>;
+    static create(values: ModelQueryAttributeData, options?: ModelCreateOptions): Promise<Model | null>;
+    static bulkCreate(values: Array<ModelQueryAttributeData>, options?: ModelBulkCreateOptions): Promise<Array<Model>>;
     static findAll(options?: FindAllModelOptions): Promise<Array<Model>>;
     static findOne(options?: FindOneModelOptions): Promise<Model | null>;
     static findByRowId(rowId: string): Promise<Model | null>;
     static findOrCreate(options: FindOrCreateModelOptions): Promise<[Model, boolean]>;
-    static update(values: ModelQueryAttributeData, options: ModelQueryWhereOptions): Promise<number>;
+    static update(values: ModelQueryAttributeData, options: ModelQueryUpdateOptions): Promise<Array<Model>>;
     static destroy(options: ModelQueryWhereOptions): Promise<number>;
 
-    update(values: ModelQueryAttributeData): Promise<this>;
+    update(values: ModelQueryAttributeData, options?: ModelQueryAttributesOptions): Promise<this>;
     destroy(): Promise<void>;
 }

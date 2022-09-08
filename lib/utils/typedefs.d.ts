@@ -1,4 +1,11 @@
-import { BindParameters, Connection, InitialiseOptions, PoolAttributes } from "oracledb";
+import {
+    BindDefinition,
+    BindParameters,
+    Connection,
+    InitialiseOptions,
+    Metadata,
+    PoolAttributes
+} from "oracledb";
 import Model from "../Model";
 import Nessie from "../Nessie";
 import { DataTypes, OnDeleteBehavior } from "./Constants";
@@ -13,7 +20,7 @@ interface InitializedModels {
     [key: string]: typeof Model;
 }
 
-type ColumnValue = string | number;
+type ColumnValue = string | number | null;
 
 type AttributeData = {
     type: DataTypes,
@@ -36,7 +43,10 @@ type ExecuteOptions = ConnectionOptions & { commit?: boolean };
 
 type ExecuteOneOptions = ExecuteOptions & { bindParams?: BindParameters };
 
-type ExecuteManyOptions = ExecuteOptions & { bindParams: Array<BindParameters> };
+type ExecuteManyOptions = ExecuteOptions & {
+    binds: Array<BindParameters>,
+    bindDefs?: BindDefinition[]
+};
 
 type SyncOptions = ConnectionOptions & { force?: boolean };
 
@@ -66,13 +76,18 @@ type AssociationOptions = {
 
 type ModelDropOptions = ConnectionOptions & { cascade?: boolean };
 
-type ModelCreateOptions = {
-    select?: boolean
+type ModelQueryAttributesOptions = { attributes?: Array<string> };
+
+type ModelCreateOptions = ModelQueryAttributesOptions & { ignoreDuplicate?: boolean };
+
+type BuiltModelBulkQuery = {
+    metadata: Array<Metadata<any>>;
+    sql: string,
+    binds: Array<BindParameters>,
+    bindDefs: Array<BindDefinition>
 };
 
-type ModelBulkCreateOptions = {
-    ignoreDuplicates?: boolean
-};
+type ModelBulkCreateOptions = ModelQueryAttributesOptions & { ignoreDuplicates?: boolean };
 
 interface ModelQueryWhereOperatorData {
     [key: Operators]: ColumnValue;
@@ -84,14 +99,14 @@ interface ModelQueryWhereData {
 
 type ModelQueryWhereOptions = { where: ModelQueryWhereData };
 
-type ModelQueryAttributesOptions = { attributes?: Array<string> };
-
 type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryWhereData };
 
 type FindAllModelOptions = FindOneModelOptions & { limit?: number };
+
+type ModelQueryUpdateOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions;
 
 interface ModelQueryAttributeData {
     [key: string]: ColumnValue;
 }
 
-type FindOrCreateModelOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions & { defaults?: ModelQueryAttributeData };
+type FindOrCreateModelOptions = ModelQueryUpdateOptions & { defaults?: ModelQueryAttributeData };
