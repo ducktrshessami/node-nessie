@@ -103,8 +103,10 @@ type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryWhe
 
 type FindAllModelOptions = FindOneModelOptions & { limit?: number };
 
+type ModelQueryUpdateOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions;
+
 interface ModelQueryAttributeData {
     [key: string]: ColumnValue;
 }
 
-type FindOrCreateModelOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions & { defaults?: ModelQueryAttributeData };
+type FindOrCreateModelOptions = ModelQueryUpdateOptions & { defaults?: ModelQueryAttributeData };

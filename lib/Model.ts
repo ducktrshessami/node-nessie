@@ -36,6 +36,7 @@ import {
     ModelDropOptions,
     ModelInitOptions,
     ModelQueryAttributeData,
+    ModelQueryUpdateOptions,
     ModelQueryWhereData,
     ModelQueryWhereOptions,
     SyncOptions
@@ -292,9 +293,11 @@ export default class Model {
 
     private static parseOutBinds(outBinds: Array<Array<Array<ColumnValue> | null>>, metadata: Array<Metadata<any>>) {
         return outBinds!.reduce((created: Array<Model>, row) => {
-            const formattedRow = row.map((outBind) => outBind ? outBind[0] : null);
-            if (formattedRow.some(dataValue => dataValue)) {
-                created.push(new this(metadata, formattedRow));
+            const rowCount = row.reduce((count, attribute) => Math.max(count, attribute?.length ?? 0), 0);
+            for (let i = 0; i < rowCount; i++) {
+                if (row.some(column => column !== null)) {
+                    created.push(new this(metadata, row.map(column => column?.at(i) ?? null)));
+                }
             }
             return created;
         }, []);
@@ -415,15 +418,16 @@ export default class Model {
         return [model, created];
     }
 
-    static async update(values: ModelQueryAttributeData, options: ModelQueryWhereOptions) {
+    static async update(values: ModelQueryAttributeData, options: ModelQueryUpdateOptions) {
         this.initCheck();
         const [valuesSql, bindParams] = this.parseQueryAttributeDataSql(values);
         const [where] = this.parseQueryAttributeDataSql(options.where, bindParams);
-        const { rowsAffected } = await this._nessie!.execute(`UPDATE "${this.tableName}" SET ${valuesSql} WHERE ${where}`, {
-            bindParams,
+        const [metadata, returningSql, bindDefs] = this.parseReturningSql(options.attributes, bindParams.length);
+        const { outBinds } = await this._nessie!.execute(`UPDATE "${this.tableName}" SET ${valuesSql} WHERE ${where} ${returningSql}`, {
+            bindParams: bindParams.concat(bindDefs),
             commit: true
         });
-        return rowsAffected ?? 0;
+        return this.parseOutBinds([outBinds as any], metadata);
     }
 
     private async patch() {
