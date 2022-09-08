@@ -135,7 +135,7 @@ export class Model {
     static drop(options?: ModelDropOptions): Promise<void>;
     static sync(options?: SyncOptions): Promise<void>;
     static create(values: ModelQueryAttributeData, options?: ModelQueryAttributesOptions): Promise<Model>;
-    static bulkCreate(values: Array<ModelQueryAttributeData>, options?: ModelBulkCreateOptions): Promise<number>;
+    static bulkCreate(values: Array<ModelQueryAttributeData>, options?: ModelBulkCreateOptions): Promise<Array<Model>>;
     static findAll(options?: FindAllModelOptions): Promise<Array<Model>>;
     static findOne(options?: FindOneModelOptions): Promise<Model | null>;
     static findByRowId(rowId: string): Promise<Model | null>;
