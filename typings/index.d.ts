@@ -147,6 +147,6 @@ export class Model {
     static update(values: ModelQueryAttributeData, options: ModelQueryUpdateOptions): Promise<Array<Model>>;
     static destroy(options: ModelQueryWhereOptions): Promise<number>;
 
-    update(values: ModelQueryAttributeData): Promise<this>;
+    update(values: ModelQueryAttributeData, options?: ModelQueryAttributesOptions): Promise<this>;
     destroy(): Promise<void>;
 }
