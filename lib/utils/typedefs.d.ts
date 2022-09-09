@@ -99,9 +99,11 @@ interface ModelQueryWhereData {
 
 type ModelQueryWhereOptions = { where: ModelQueryWhereData };
 
-type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryWhereData };
+type FindOneModelOptions = ConnectionOptions & ModelQueryAttributesOptions & { where?: ModelQueryWhereData };
 
 type FindAllModelOptions = FindOneModelOptions & { limit?: number };
+
+type FindRowIdModelOptions = ConnectionOptions & ModelQueryAttributesOptions;
 
 type ModelUpdateOptions = ConnectionOptions & ModelQueryAttributesOptions;
 

@@ -29,6 +29,7 @@ import {
     FindAllModelOptions,
     FindOneModelOptions,
     FindOrCreateModelOptions,
+    FindRowIdModelOptions,
     FormattedModelAssociations,
     FormattedModelAttributes,
     ModelAttributes,
@@ -369,9 +370,11 @@ export default class Model {
         return first ?? null;
     }
 
-    static async findByRowId(rowId: string) {
+    static async findByRowId(rowId: string, options: FindRowIdModelOptions = {}) {
         return this.findOne({
-            where: { ROWID: rowId }
+            where: { ROWID: rowId },
+            attributes: options.attributes,
+            connection: options.connection
         });
     }
 
