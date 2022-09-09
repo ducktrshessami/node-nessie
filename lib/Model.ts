@@ -435,7 +435,8 @@ export default class Model {
         const [where, bindParams] = this.parseQueryAttributeDataSql(options.where);
         const { rowsAffected } = await this._nessie!.execute(`DELETE FROM "${this.tableName}" WHERE ${where}`, {
             bindParams,
-            commit: true
+            commit: true,
+            connection: options.connection
         });
         return rowsAffected ?? 0;
     }
