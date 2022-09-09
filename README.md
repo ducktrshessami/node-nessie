@@ -6,6 +6,18 @@ This is not intended to be a finished project for release. I'm writing exactly w
 Based on [Sequelize](https://sequelize.org/)
 
 ## Features
+- 
+
+## Not Yet Implemented
+I'm sure there's more that could be implemented at some point, but this is what I personally think should be implemented before 1.0
+- an underlying separate sql builder module rather than template literal queries
+- model template generation for QOL
+- native migrations/seeders support
+- internal value sanitization
+- stricter attribute validation (especially for bulkCreate)
+- potential for bulkCreate to pull default values to fill missing attributes in query
+- joins in select queries
+- transactions
 
 ## Contributing
 If you feel like contributing, there's a very high chance you should just maintain a fork instead.
