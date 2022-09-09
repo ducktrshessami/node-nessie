@@ -6,7 +6,10 @@ This is not intended to be a finished project for release. I'm writing exactly w
 Based on [Sequelize](https://sequelize.org/)
 
 ## Features
-- 
+- basic model definition
+- basic CRUD
+- row insertion with ignore duplicate(s)
+- findOrCreate based on [findCreateFind](https://sequelize.org/api/v6/class/src/model.js~Model.html#static-method-findCreateFind)
 
 ## Not Yet Implemented
 I'm sure there's more that could be implemented at some point, but this is what I personally think should be implemented before 1.0
