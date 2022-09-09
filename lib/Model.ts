@@ -25,6 +25,7 @@ import {
     AttributeData,
     BuiltModelBulkQuery,
     ColumnValue,
+    ConnectionOptions,
     FindAllModelOptions,
     FindOneModelOptions,
     FindOrCreateModelOptions,
@@ -37,9 +38,9 @@ import {
     ModelInitOptions,
     ModelQueryAttributeData,
     ModelQueryAttributesOptions,
+    ModelQueryDestroyOptions,
     ModelQueryUpdateOptions,
     ModelQueryWhereData,
-    ModelQueryWhereOptions,
     SyncOptions
 } from "./utils/typedefs";
 
@@ -427,7 +428,7 @@ export default class Model {
         return this;
     }
 
-    static async destroy(options: ModelQueryWhereOptions) {
+    static async destroy(options: ModelQueryDestroyOptions) {
         this.initCheck();
         const [where, bindParams] = this.parseQueryAttributeDataSql(options.where);
         const { rowsAffected } = await this._nessie!.execute(`DELETE FROM "${this.tableName}" WHERE ${where}`, {
@@ -437,10 +438,11 @@ export default class Model {
         return rowsAffected ?? 0;
     }
 
-    async destroy() {
+    async destroy(options: ConnectionOptions = {}) {
         if (!this._destroyed) {
             await this.model.destroy({
-                where: { ROWID: this.rowId }
+                where: { ROWID: this.rowId },
+                connection: options.connection
             });
             this._destroyed = true;
         }

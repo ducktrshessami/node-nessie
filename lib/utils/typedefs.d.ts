@@ -110,3 +110,5 @@ interface ModelQueryAttributeData {
 }
 
 type FindOrCreateModelOptions = ModelQueryUpdateOptions & { defaults?: ModelQueryAttributeData };
+
+type ModelQueryDestroyOptions = ConnectionOptions & ModelQueryWhereOptions;
