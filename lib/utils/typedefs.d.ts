@@ -78,7 +78,7 @@ type ModelDropOptions = ConnectionOptions & { cascade?: boolean };
 
 type ModelQueryAttributesOptions = { attributes?: Array<string> };
 
-type ModelCreateOptions = ModelQueryAttributesOptions & { ignoreDuplicate?: boolean };
+type ModelCreateOptions = ConnectionOptions & ModelQueryAttributesOptions & { ignoreDuplicate?: boolean };
 
 type BuiltModelBulkQuery = {
     metadata: Array<Metadata<any>>;

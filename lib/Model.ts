@@ -315,7 +315,8 @@ export default class Model {
         this.initCheck();
         const [created] = await this.bulkCreate([values], {
             attributes: options.attributes,
-            ignoreDuplicates: options.ignoreDuplicate
+            ignoreDuplicates: options.ignoreDuplicate,
+            connection: options.connection
         });
         return created ?? null;
     }
