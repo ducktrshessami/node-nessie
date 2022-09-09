@@ -305,7 +305,8 @@ export default class Model {
         const { outBinds } = await this._nessie!.executeMany(sql, {
             binds,
             bindDefs,
-            commit: true
+            commit: true,
+            connection: options.connection
         });
         return this.parseOutBinds(outBinds as any, metadata);
     }

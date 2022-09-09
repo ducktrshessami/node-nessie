@@ -87,7 +87,7 @@ type BuiltModelBulkQuery = {
     bindDefs: Array<BindDefinition>
 };
 
-type ModelBulkCreateOptions = ModelQueryAttributesOptions & { ignoreDuplicates?: boolean };
+type ModelBulkCreateOptions = ConnectionOptions & ModelQueryAttributesOptions & { ignoreDuplicates?: boolean };
 
 interface ModelQueryWhereOperatorData {
     [key: Operators]: ColumnValue;
