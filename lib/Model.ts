@@ -415,7 +415,8 @@ export default class Model {
         const [metadata, returningSql, bindDefs] = this.parseReturningSql(options.attributes, bindParams.length);
         const { outBinds } = await this._nessie!.execute(`UPDATE "${this.tableName}" SET ${valuesSql} WHERE ${where} ${returningSql}`, {
             bindParams: bindParams.concat(bindDefs),
-            commit: true
+            commit: true,
+            connection: options.connection
         });
         return this.parseOutBinds([outBinds as any], metadata);
     }
