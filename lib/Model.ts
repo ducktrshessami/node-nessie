@@ -358,7 +358,10 @@ export default class Model {
         if (typeof options.limit === "number") {
             sqlData.push(`FETCH NEXT ${Math.floor(options.limit)} ROWS ONLY`);
         }
-        const results: Result<any> = await this._nessie!.execute(sqlData.join(" "), { bindParams });
+        const results: Result<any> = await this._nessie!.execute(sqlData.join(" "), {
+            bindParams,
+            connection: options.connection
+        });
         return results.rows!.map(row => new this(results.metaData!, row));
     }
 
