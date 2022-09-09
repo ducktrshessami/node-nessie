@@ -1,6 +1,7 @@
 import Nessie from "./Nessie";
 import pluralize from "pluralize";
 import assert from "node:assert";
+import cleanupConnection from "./utils/cleanupConnection";
 import {
     ModelInitError,
     ModelSyncError
@@ -384,19 +385,35 @@ export default class Model {
     }
 
     static async findOrCreate(options: FindOrCreateModelOptions): Promise<[Model, boolean]> {
-        let created = false;
-        let model = await this.findOne(options);
-        if (!model) {
-            const createOptions = {
-                ...options.where,
-                ...options.defaults
-            } as ModelQueryAttributeData;
-            try {
-                model = (await this.create(createOptions))!;
-                created = true;
-            }
-            catch (error: any) {
-                if (error.errorNum === 1) {
+        this.initCheck();
+        const connection = options.connection ?? await this._nessie!.connect();
+        try {
+            let created = false;
+            let model: Model | null = await this.findOne({
+                connection,
+                where: options.where,
+                attributes: options.attributes
+            });
+            if (!model) {
+                const createOptions = Object
+                    .keys(options.where)
+                    .reduce((data: ModelQueryAttributeData, attribute) => {
+                        const value = options.where[attribute];
+                        if (isColumnValue(value)) {
+                            data[attribute] = value;
+                        }
+                        return data;
+                    }, {});
+                Object.assign(createOptions, options.defaults);
+                model = await this.create(createOptions, {
+                    connection,
+                    attributes: options.attributes,
+                    ignoreDuplicate: true
+                });
+                if (model) {
+                    created = true;
+                }
+                else {
                     const pks = this.primaryKeys;
                     const findPkOptions = Object
                         .keys(createOptions)
@@ -406,14 +423,18 @@ export default class Model {
                             }
                             return pkWhere;
                         }, {});
-                    model = await this.findOne({ where: findPkOptions });
-                }
-                else {
-                    throw error;
+                    model = await this.findOne({
+                        connection,
+                        where: findPkOptions,
+                        attributes: options.attributes
+                    });
                 }
             }
+            return [model, created];
         }
-        return [model, created];
+        finally {
+            await cleanupConnection(connection, options.connection);
+        }
     }
 
     static async update(values: ModelQueryAttributeData, options: ModelQueryUpdateOptions) {
@@ -497,4 +518,10 @@ function createOutBindDef(type: DataTypes) {
     }
     bindDef.dir = BIND_OUT;
     return bindDef;
+}
+
+function isColumnValue(value: any): value is ColumnValue {
+    return value === null ||
+        !isNaN(value) ||
+        typeof value === "string";
 }
