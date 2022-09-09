@@ -41,6 +41,7 @@ import {
     ModelQueryDestroyOptions,
     ModelQueryUpdateOptions,
     ModelQueryWhereData,
+    ModelUpdateOptions,
     SyncOptions
 } from "./utils/typedefs";
 
@@ -419,10 +420,11 @@ export default class Model {
         return this.parseOutBinds([outBinds as any], metadata);
     }
 
-    async update(values: ModelQueryAttributeData, options: ModelQueryAttributesOptions = {}) {
+    async update(values: ModelQueryAttributeData, options: ModelUpdateOptions = {}) {
         const [updated] = await this.model.update(values, {
             where: { ROWID: this.rowId },
-            attributes: options.attributes
+            attributes: options.attributes,
+            connection: options.connection
         });
         this.dataValues = updated.dataValues;
         return this;

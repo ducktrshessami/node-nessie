@@ -103,7 +103,9 @@ type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryWhe
 
 type FindAllModelOptions = FindOneModelOptions & { limit?: number };
 
-type ModelQueryUpdateOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions;
+type ModelUpdateOptions = ConnectionOptions & ModelQueryAttributesOptions;
+
+type ModelQueryUpdateOptions = ModelUpdateOptions & ModelQueryWhereOptions;
 
 interface ModelQueryAttributeData {
     [key: string]: ColumnValue;
