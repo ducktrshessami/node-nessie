@@ -16,7 +16,7 @@ Based on [Sequelize](https://sequelize.org/)
 ## Not Yet Implemented
 I'm sure there's more that could be implemented at some point, but this is what I personally think should be implemented before 1.0
 - an underlying separate sql builder module rather than template literal queries
-- model template generation for QOL
+- model template generation for QOL (possibly in separate cli)
 - native migrations/seeders support
 - internal value sanitization
 - stricter attribute validation (especially for bulkCreate)
