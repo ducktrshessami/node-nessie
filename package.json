@@ -24,12 +24,12 @@
   },
   "homepage": "https://github.com/ducktrshessami/node-nessie#readme",
   "dependencies": {
-    "oracledb": "^5.4.0",
+    "oracledb": "^5.5.0",
     "pluralize": "^8.0.0"
   },
   "devDependencies": {
     "@types/mocha": "^9.1.1",
-    "@types/node": "^18.7.14",
+    "@types/node": "^18.7.16",
     "@types/oracledb": "^5.2.3",
     "@types/pluralize": "^0.0.29",
     "dotenv": "^16.0.2",
