@@ -283,13 +283,35 @@ export default class Model {
         };
     }
 
-    private static parseOutBinds(outBinds: Array<Array<Array<ColumnValue> | null>>, metadata: Array<Metadata<any>>) {
-        return outBinds!.reduce((created: Array<Model>, row) => {
-            const rowCount = row.reduce((count, attribute) => Math.max(count, attribute?.length ?? 0), 0);
-            for (let i = 0; i < rowCount; i++) {
-                if (row.some(column => column !== null)) {
-                    created.push(new this(metadata, row.map(column => column?.at(i) ?? null)));
-                }
+    private static parseOutColumns(columns: Array<ColumnValue | Array<ColumnValue>>, metadata: Array<Metadata<any>>): Array<Model> {
+        let maxLength = 0;
+        const columnArrays = columns.map(column => {
+            const columnArray = Array.isArray(column) ? column : [column];
+            maxLength = Math.max(maxLength, columnArray.length);
+            return columnArray;
+        });
+        const created: Array<Model> = [];
+        for (let i = 0; i < maxLength; i++) {
+            let allNull = true;
+            const row = columnArrays.map(column => {
+                const value = column[i] ?? null;
+                allNull &&= value === null;
+                return value;
+            });
+            if (!allNull) {
+                created.push(new this(metadata, row));
+            }
+        }
+        return created;
+    }
+
+    private static parseOutBinds(outBinds: Array<Array<ColumnValue> | Array<Array<ColumnValue>>>, metadata: Array<Metadata<any>>) {
+        return outBinds!.reduce((created: Array<Model>, outerRow) => {
+            if (outerRow.some(column => Array.isArray(column))) {
+                return created.concat(this.parseOutColumns(outerRow, metadata));
+            }
+            else if (outerRow.some(column => column !== null)) {
+                created.push(new this(metadata, outerRow as Array<ColumnValue>));
             }
             return created;
         }, []);
