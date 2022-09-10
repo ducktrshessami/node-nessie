@@ -1,6 +1,7 @@
 import Nessie from "./Nessie";
 import pluralize from "pluralize";
 import assert from "node:assert";
+import cleanupConnection from "./utils/cleanupConnection";
 import {
     ModelInitError,
     ModelSyncError
@@ -25,9 +26,11 @@ import {
     AttributeData,
     BuiltModelBulkQuery,
     ColumnValue,
+    ConnectionOptions,
     FindAllModelOptions,
     FindOneModelOptions,
     FindOrCreateModelOptions,
+    FindRowIdModelOptions,
     FormattedModelAssociations,
     FormattedModelAttributes,
     ModelAttributes,
@@ -36,10 +39,10 @@ import {
     ModelDropOptions,
     ModelInitOptions,
     ModelQueryAttributeData,
-    ModelQueryAttributesOptions,
+    ModelQueryDestroyOptions,
     ModelQueryUpdateOptions,
     ModelQueryWhereData,
-    ModelQueryWhereOptions,
+    ModelUpdateOptions,
     SyncOptions
 } from "./utils/typedefs";
 
@@ -279,13 +282,35 @@ export default class Model {
         };
     }
 
-    private static parseOutBinds(outBinds: Array<Array<Array<ColumnValue> | null>>, metadata: Array<Metadata<any>>) {
-        return outBinds!.reduce((created: Array<Model>, row) => {
-            const rowCount = row.reduce((count, attribute) => Math.max(count, attribute?.length ?? 0), 0);
-            for (let i = 0; i < rowCount; i++) {
-                if (row.some(column => column !== null)) {
-                    created.push(new this(metadata, row.map(column => column?.at(i) ?? null)));
-                }
+    private static parseOutColumns(columns: Array<ColumnValue | Array<ColumnValue>>, metadata: Array<Metadata<any>>): Array<Model> {
+        let maxLength = 0;
+        const columnArrays = columns.map(column => {
+            const columnArray = Array.isArray(column) ? column : [column];
+            maxLength = Math.max(maxLength, columnArray.length);
+            return columnArray;
+        });
+        const created: Array<Model> = [];
+        for (let i = 0; i < maxLength; i++) {
+            let allNull = true;
+            const row = columnArrays.map(column => {
+                const value = column[i] ?? null;
+                allNull &&= value === null;
+                return value;
+            });
+            if (!allNull) {
+                created.push(new this(metadata, row));
+            }
+        }
+        return created;
+    }
+
+    private static parseOutBinds(outBinds: Array<Array<ColumnValue> | Array<Array<ColumnValue>>>, metadata: Array<Metadata<any>>) {
+        return outBinds!.reduce((created: Array<Model>, outerRow) => {
+            if (outerRow.some(column => Array.isArray(column))) {
+                return created.concat(this.parseOutColumns(outerRow, metadata));
+            }
+            else if (outerRow.some(column => column !== null)) {
+                created.push(new this(metadata, outerRow as Array<ColumnValue>));
             }
             return created;
         }, []);
@@ -302,7 +327,8 @@ export default class Model {
         const { outBinds } = await this._nessie!.executeMany(sql, {
             binds,
             bindDefs,
-            commit: true
+            commit: true,
+            connection: options.connection
         });
         return this.parseOutBinds(outBinds as any, metadata);
     }
@@ -311,7 +337,8 @@ export default class Model {
         this.initCheck();
         const [created] = await this.bulkCreate([values], {
             attributes: options.attributes,
-            ignoreDuplicates: options.ignoreDuplicate
+            ignoreDuplicates: options.ignoreDuplicate,
+            connection: options.connection
         });
         return created ?? null;
     }
@@ -355,7 +382,10 @@ export default class Model {
         if (typeof options.limit === "number") {
             sqlData.push(`FETCH NEXT ${Math.floor(options.limit)} ROWS ONLY`);
         }
-        const results: Result<any> = await this._nessie!.execute(sqlData.join(" "), { bindParams });
+        const results: Result<any> = await this._nessie!.execute(sqlData.join(" "), {
+            bindParams,
+            connection: options.connection
+        });
         return results.rows!.map(row => new this(results.metaData!, row));
     }
 
@@ -367,26 +397,44 @@ export default class Model {
         return first ?? null;
     }
 
-    static async findByRowId(rowId: string) {
+    static async findByRowId(rowId: string, options: FindRowIdModelOptions = {}) {
         return this.findOne({
-            where: { ROWID: rowId }
+            where: { ROWID: rowId },
+            attributes: options.attributes,
+            connection: options.connection
         });
     }
 
     static async findOrCreate(options: FindOrCreateModelOptions): Promise<[Model, boolean]> {
-        let created = false;
-        let model = await this.findOne(options);
-        if (!model) {
-            const createOptions = {
-                ...options.where,
-                ...options.defaults
-            } as ModelQueryAttributeData;
-            try {
-                model = (await this.create(createOptions))!;
-                created = true;
-            }
-            catch (error: any) {
-                if (error.errorNum === 1) {
+        this.initCheck();
+        const connection = options.connection ?? await this._nessie!.connect();
+        try {
+            let created = false;
+            let model: Model | null = await this.findOne({
+                connection,
+                where: options.where,
+                attributes: options.attributes
+            });
+            if (!model) {
+                const createOptions = Object
+                    .keys(options.where)
+                    .reduce((data: ModelQueryAttributeData, attribute) => {
+                        const value = options.where[attribute];
+                        if (isColumnValue(value)) {
+                            data[attribute] = value;
+                        }
+                        return data;
+                    }, {});
+                Object.assign(createOptions, options.defaults);
+                model = await this.create(createOptions, {
+                    connection,
+                    attributes: options.attributes,
+                    ignoreDuplicate: true
+                });
+                if (model) {
+                    created = true;
+                }
+                else {
                     const pks = this.primaryKeys;
                     const findPkOptions = Object
                         .keys(createOptions)
@@ -396,14 +444,18 @@ export default class Model {
                             }
                             return pkWhere;
                         }, {});
-                    model = await this.findOne({ where: findPkOptions });
-                }
-                else {
-                    throw error;
+                    model = await this.findOne({
+                        connection,
+                        where: findPkOptions,
+                        attributes: options.attributes
+                    });
                 }
             }
+            return [model, created];
         }
-        return [model, created];
+        finally {
+            await cleanupConnection(connection, options.connection);
+        }
     }
 
     static async update(values: ModelQueryAttributeData, options: ModelQueryUpdateOptions) {
@@ -413,34 +465,38 @@ export default class Model {
         const [metadata, returningSql, bindDefs] = this.parseReturningSql(options.attributes, bindParams.length);
         const { outBinds } = await this._nessie!.execute(`UPDATE "${this.tableName}" SET ${valuesSql} WHERE ${where} ${returningSql}`, {
             bindParams: bindParams.concat(bindDefs),
-            commit: true
+            commit: true,
+            connection: options.connection
         });
         return this.parseOutBinds([outBinds as any], metadata);
     }
 
-    async update(values: ModelQueryAttributeData, options: ModelQueryAttributesOptions = {}) {
+    async update(values: ModelQueryAttributeData, options: ModelUpdateOptions = {}) {
         const [updated] = await this.model.update(values, {
             where: { ROWID: this.rowId },
-            attributes: options.attributes
+            attributes: options.attributes,
+            connection: options.connection
         });
         this.dataValues = updated.dataValues;
         return this;
     }
 
-    static async destroy(options: ModelQueryWhereOptions) {
+    static async destroy(options: ModelQueryDestroyOptions) {
         this.initCheck();
         const [where, bindParams] = this.parseQueryAttributeDataSql(options.where);
         const { rowsAffected } = await this._nessie!.execute(`DELETE FROM "${this.tableName}" WHERE ${where}`, {
             bindParams,
-            commit: true
+            commit: true,
+            connection: options.connection
         });
         return rowsAffected ?? 0;
     }
 
-    async destroy() {
+    async destroy(options: ConnectionOptions = {}) {
         if (!this._destroyed) {
             await this.model.destroy({
-                where: { ROWID: this.rowId }
+                where: { ROWID: this.rowId },
+                connection: options.connection
             });
             this._destroyed = true;
         }
@@ -483,4 +539,10 @@ function createOutBindDef(type: DataTypes) {
     }
     bindDef.dir = BIND_OUT;
     return bindDef;
+}
+
+function isColumnValue(value: any): value is ColumnValue {
+    return value === null ||
+        !isNaN(value) ||
+        typeof value === "string";
 }

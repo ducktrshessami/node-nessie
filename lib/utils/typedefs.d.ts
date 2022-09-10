@@ -78,7 +78,7 @@ type ModelDropOptions = ConnectionOptions & { cascade?: boolean };
 
 type ModelQueryAttributesOptions = { attributes?: Array<string> };
 
-type ModelCreateOptions = ModelQueryAttributesOptions & { ignoreDuplicate?: boolean };
+type ModelCreateOptions = ConnectionOptions & ModelQueryAttributesOptions & { ignoreDuplicate?: boolean };
 
 type BuiltModelBulkQuery = {
     metadata: Array<Metadata<any>>;
@@ -87,7 +87,7 @@ type BuiltModelBulkQuery = {
     bindDefs: Array<BindDefinition>
 };
 
-type ModelBulkCreateOptions = ModelQueryAttributesOptions & { ignoreDuplicates?: boolean };
+type ModelBulkCreateOptions = ConnectionOptions & ModelQueryAttributesOptions & { ignoreDuplicates?: boolean };
 
 interface ModelQueryWhereOperatorData {
     [key: Operators]: ColumnValue;
@@ -99,14 +99,20 @@ interface ModelQueryWhereData {
 
 type ModelQueryWhereOptions = { where: ModelQueryWhereData };
 
-type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryWhereData };
+type FindOneModelOptions = ConnectionOptions & ModelQueryAttributesOptions & { where?: ModelQueryWhereData };
 
 type FindAllModelOptions = FindOneModelOptions & { limit?: number };
 
-type ModelQueryUpdateOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions;
+type FindRowIdModelOptions = ConnectionOptions & ModelQueryAttributesOptions;
+
+type ModelUpdateOptions = ConnectionOptions & ModelQueryAttributesOptions;
+
+type ModelQueryUpdateOptions = ModelUpdateOptions & ModelQueryWhereOptions;
 
 interface ModelQueryAttributeData {
     [key: string]: ColumnValue;
 }
 
 type FindOrCreateModelOptions = ModelQueryUpdateOptions & { defaults?: ModelQueryAttributeData };
+
+type ModelQueryDestroyOptions = ConnectionOptions & ModelQueryWhereOptions;

@@ -1,10 +1,10 @@
 import {
-    Connection,
     createPool,
     initOracleClient,
     Pool
 } from "oracledb"
 import Model from "./Model";
+import cleanupConnection from "./utils/cleanupConnection";
 import {
     ConnectionOptions,
     DefineModelOptions,
@@ -127,11 +127,5 @@ export default class Nessie {
     async close(drainTime?: number) {
         await (isNaN(drainTime!) ? this._pool?.close() : this._pool?.close(drainTime));
         this._pool = null;
-    }
-}
-
-async function cleanupConnection(connection: Connection, connectionOption?: Connection) {
-    if (!connectionOption) {
-        await connection.close();
     }
 }

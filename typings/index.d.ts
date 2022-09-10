@@ -1,4 +1,13 @@
-import { BindDefinition, BindParameters, Connection, InitialiseOptions, Pool, PoolAttributes, Result, Results } from "oracledb";
+import {
+    BindDefinition,
+    BindParameters,
+    Connection,
+    InitialiseOptions,
+    Pool,
+    PoolAttributes,
+    Result,
+    Results
+} from "oracledb";
 
 export enum DataTypes {
     STRING = "VARCHAR(255)",
@@ -96,9 +105,9 @@ type ModelDropOptions = ConnectionOptions & { cascade?: boolean };
 
 type ModelQueryAttributesOptions = { attributes?: Array<string> };
 
-type ModelCreateOptions = ModelQueryAttributesOptions & { ignoreDuplicate?: boolean };
+type ModelCreateOptions = ConnectionOptions & ModelQueryAttributesOptions & { ignoreDuplicate?: boolean };
 
-type ModelBulkCreateOptions = ModelQueryAttributesOptions & { ignoreDuplicates?: boolean };
+type ModelBulkCreateOptions = ConnectionOptions & ModelQueryAttributesOptions & { ignoreDuplicates?: boolean };
 
 interface ModelQueryWhereOperatorData {
     [key: Operators]: ColumnValue;
@@ -110,17 +119,23 @@ interface ModelQueryWhereData {
 
 type ModelQueryWhereOptions = { where: ModelQueryWhereData };
 
-type FindOneModelOptions = ModelQueryAttributesOptions & { where?: ModelQueryWhereData };
+type FindOneModelOptions = ConnectionOptions & ModelQueryAttributesOptions & { where?: ModelQueryWhereData };
 
 type FindAllModelOptions = FindOneModelOptions & { limit?: number };
 
-type ModelQueryUpdateOptions = ModelQueryWhereOptions & ModelQueryAttributesOptions;
+type FindRowIdModelOptions = ConnectionOptions & ModelQueryAttributesOptions;
+
+type ModelUpdateOptions = ConnectionOptions & ModelQueryAttributesOptions;
+
+type ModelQueryUpdateOptions = ModelUpdateOptions & ModelQueryWhereOptions;
 
 interface ModelQueryAttributeData {
     [key: string]: ColumnValue;
 }
 
 type FindOrCreateModelOptions = ModelQueryUpdateOptions & { defaults?: ModelQueryAttributeData };
+
+type ModelQueryDestroyOptions = ConnectionOptions & ModelQueryWhereOptions;
 
 export class Model {
     static readonly tableName: string;
@@ -142,11 +157,11 @@ export class Model {
     static bulkCreate(values: Array<ModelQueryAttributeData>, options?: ModelBulkCreateOptions): Promise<Array<Model>>;
     static findAll(options?: FindAllModelOptions): Promise<Array<Model>>;
     static findOne(options?: FindOneModelOptions): Promise<Model | null>;
-    static findByRowId(rowId: string): Promise<Model | null>;
+    static findByRowId(rowId: string, options?: FindRowIdModelOptions): Promise<Model | null>;
     static findOrCreate(options: FindOrCreateModelOptions): Promise<[Model, boolean]>;
     static update(values: ModelQueryAttributeData, options: ModelQueryUpdateOptions): Promise<Array<Model>>;
-    static destroy(options: ModelQueryWhereOptions): Promise<number>;
+    static destroy(options: ModelQueryDestroyOptions): Promise<number>;
 
-    update(values: ModelQueryAttributeData, options?: ModelQueryAttributesOptions): Promise<this>;
-    destroy(): Promise<void>;
+    update(values: ModelQueryAttributeData, options?: ModelUpdateOptions): Promise<this>;
+    destroy(options?: ConnectionOptions): Promise<void>;
 }
