@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OnDeleteBehavior = exports.Pseudocolumns = exports.DataTypes = void 0;
+exports.Operators = exports.OnDeleteBehavior = exports.Pseudocolumns = exports.DataTypes = void 0;
 var DataTypes;
 (function (DataTypes) {
     DataTypes["STRING"] = "VARCHAR(255)";
@@ -21,3 +21,9 @@ var OnDeleteBehavior;
     OnDeleteBehavior["CASCADE"] = "CASCADE";
     OnDeleteBehavior["SET_NULL"] = "SET NULL";
 })(OnDeleteBehavior = exports.OnDeleteBehavior || (exports.OnDeleteBehavior = {}));
+var Operators;
+(function (Operators) {
+    Operators["eq"] = "=";
+    Operators["lt"] = "<";
+    Operators["gt"] = ">";
+})(Operators = exports.Operators || (exports.Operators = {}));

@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const oracledb_1 = require("oracledb");
 const Model_1 = __importDefault(require("./Model"));
+const cleanupConnection_1 = __importDefault(require("./utils/cleanupConnection"));
 class Nessie {
     constructor(configuration) {
         this.configuration = configuration;
@@ -51,54 +52,75 @@ class Nessie {
             return this._pool.getConnection();
         });
     }
-    execute(sql, bindParams = [], commit = false) {
+    execute(sql, options = {}) {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
-            const connection = yield this.connect();
+            const connection = (_a = options.connection) !== null && _a !== void 0 ? _a : yield this.connect();
             try {
                 if (this.configuration.verbose) {
                     console.info(`Executing: ${sql}`);
                 }
-                const result = yield connection.execute(sql, bindParams);
-                if (commit) {
+                const result = yield connection.execute(sql, (_b = options.bindParams) !== null && _b !== void 0 ? _b : []);
+                if (options.commit) {
                     yield connection.commit();
                 }
-                yield connection.close();
+                yield (0, cleanupConnection_1.default)(connection, options.connection);
                 return result;
             }
             catch (err) {
-                yield connection.close();
+                yield (0, cleanupConnection_1.default)(connection, options.connection);
                 throw err;
             }
         });
     }
-    executeMany(sql, bindParams, commit = false) {
+    executeMany(sql, options) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            const connection = yield this.connect();
+            const connection = (_a = options.connection) !== null && _a !== void 0 ? _a : yield this.connect();
             try {
                 if (this.configuration.verbose) {
-                    console.info(`Executing Many: ${sql}`);
+                    console.info(`Executing Many (${options.binds.length}): ${sql}`);
                 }
-                const result = yield connection.executeMany(sql, bindParams);
-                if (commit) {
+                const result = yield connection.executeMany(sql, options.binds, { bindDefs: options.bindDefs });
+                if (options.commit) {
                     yield connection.commit();
                 }
-                yield connection.close();
+                yield (0, cleanupConnection_1.default)(connection, options.connection);
                 return result;
             }
             catch (err) {
-                yield connection.close();
+                yield (0, cleanupConnection_1.default)(connection, options.connection);
                 throw err;
             }
         });
     }
-    sync(force = false) {
+    drop(options = {}) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
+            const connection = (_a = options.connection) !== null && _a !== void 0 ? _a : yield this.connect();
+            for (const model of Object.values(this.models)) {
+                yield model.drop({
+                    connection,
+                    cascade: true
+                });
+            }
+            yield (0, cleanupConnection_1.default)(connection, options.connection);
+        });
+    }
+    sync(options = {}) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            const connection = (_a = options.connection) !== null && _a !== void 0 ? _a : yield this.connect();
             const sortedModels = Object
                 .values(this.models)
                 .sort((a, b) => a.parentTableCount - b.parentTableCount);
             for (const model of sortedModels) {
-                yield model.sync(force);
+                yield model.sync({
+                    connection,
+                    force: options.force
+                });
             }
+            yield (0, cleanupConnection_1.default)(connection, options.connection);
         });
     }
     close(drainTime) {
