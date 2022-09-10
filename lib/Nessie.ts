@@ -1,5 +1,4 @@
 import {
-    Connection,
     createPool,
     initOracleClient,
     Pool

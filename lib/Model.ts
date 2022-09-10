@@ -39,7 +39,6 @@ import {
     ModelDropOptions,
     ModelInitOptions,
     ModelQueryAttributeData,
-    ModelQueryAttributesOptions,
     ModelQueryDestroyOptions,
     ModelQueryUpdateOptions,
     ModelQueryWhereData,
