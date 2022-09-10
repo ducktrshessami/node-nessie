@@ -162,9 +162,7 @@ class Model {
             }
             const columnSql = this.buildTableSql(this._attributes);
             yield this._nessie.execute(`BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "${this.tableName}" (${columnSql})'; EXCEPTION WHEN OTHERS THEN IF sqlcode <> -955 THEN raise; END IF; END;`, { connection });
-            if (!options.connection) {
-                yield connection.close();
-            }
+            yield (0, cleanupConnection_1.default)(connection, options.connection);
         });
     }
     static formatAttributeKeys(attributes) {
