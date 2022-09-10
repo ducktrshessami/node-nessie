@@ -208,9 +208,7 @@ export default class Model {
         }
         const columnSql = this.buildTableSql(this._attributes!);
         await this._nessie!.execute(`BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "${this.tableName}" (${columnSql})'; EXCEPTION WHEN OTHERS THEN IF sqlcode <> -955 THEN raise; END IF; END;`, { connection });
-        if (!options.connection) {
-            await connection.close();
-        }
+        await cleanupConnection(connection, options.connection);
     }
 
     private static formatAttributeKeys(attributes: ModelQueryWhereData): ModelQueryWhereData {
