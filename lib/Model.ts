@@ -158,7 +158,7 @@ export default class Model {
             new ModelSyncError(`Invalid attribute type on model ${this.name}`)
         );
         const sql = [`"${key}"`, attributeData.type];
-        if (attributeData.defaultValue) {
+        if (attributeData.defaultValue != null) {
             sql.push(`DEFAULT ${formatValue(attributeData.defaultValue)}`);
         }
         if (attributeData.allowNull !== undefined && !attributeData.allowNull) {
