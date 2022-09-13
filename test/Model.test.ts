@@ -21,10 +21,6 @@ describe("Model", function () {
     });
 
     describe("static members", function () {
-        it("capitalizes and pluralizes class name for table name", function () {
-            assert.strictEqual(db.models.Example.tableName, "Examples");
-        });
-
         it("is accessible from Nessie instance after init", function () {
             assert.strictEqual(db.models.Example, Example);
         });
