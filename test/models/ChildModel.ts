@@ -7,6 +7,9 @@ export default function ChildModel(nessie: Nessie) {
             type: DataTypes.NUMBER,
             primaryKey: true
         }
-    }, { nessie });
+    }, {
+        nessie,
+        tableName: "NessieExampleChildTable"
+    });
     return Child;
 }

@@ -13,6 +13,9 @@ export default function ExampleModel(nessie: Nessie) {
             type: DataTypes.STRING,
             defaultValue: "foobar"
         }
-    }, { nessie });
+    }, {
+        nessie,
+        tableName: "NessieExampleTable"
+    });
     return Example;
 }
